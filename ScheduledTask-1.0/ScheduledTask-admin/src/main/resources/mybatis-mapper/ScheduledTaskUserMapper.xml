@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaohe.ScheduledTask.admin.dao.ScheduledTaskUserMapper">
+
+<!--    基础字段 -->
+    <sql id="Base_Column_List">
+        t.id,
+		t.username,
+		t.password,
+		t.role,
+		t.permission
+    </sql>
+<!--    返回类型: User -->
+    <resultMap id="ScheduledTaskUser" type="com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskUser">
+        <result column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="role" property="role"/>
+        <result column="permission" property="permission"/>
+    </resultMap>
+
+
+<!--   根据username模糊查询  -->
+<!--   trim标签用于去除sql语句之间多余的 'and'、'or'、','   -->
+    <select id="pageList" parameterType="java.util.HashMap" resultMap="ScheduledTaskUser">
+        SELECT <include refid="Base_Column_List"></include>
+        FROM scheduled_task_user AS t
+        <trim prefix="WHERE" prefixOverrides="AND | OR">
+            <if test="username != null and username != ''">
+                AND t.username like concat(concat('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+        ORDER BY username ASC
+        LIMIT #{offset}, #{pagesize}
+    </select>
+
+<!--   根据username模糊查询数量-->
+    <select id="pageListCount" parameterType="java.util.HashMap" resultType="int">
+        SELECT COUNT(1)
+        FROM FROM scheduled_task_user AS t
+        <trim prefix="WHERE" suffixOverrides="AND | OR">
+            <if test="username != null and username != ''">
+                AND t.username like concat(concat('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+    </select>
+
+
+<!-- 根据用户名查询用户 -->
+    <select id="loadByUserName" parameterType="java.util.HashMap" resultMap="ScheduledTaskUser">
+        SELECT <include refid="Base_Column_List"/>
+        FROM scheduled_task_user AS t
+        WHERE t.username = #{username}
+    </select>
+
+
+<!--    插入新用户-->
+    <insert id="save" parameterType="com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO scheduled_task_user (username,
+                                         password,
+                                         role,
+                                         permission)
+        VALUES (#{username},
+                #{password},
+                #{role},
+                #{permission});
+
+    </insert>
+
+<!-- 根据id删除用户 -->
+    <delete id="delete" parameterType="java.util.HashMap">
+        DELETE
+        FROM scheduled_task_user
+        WHERE id = #{id}
+    </delete>
+
+
+
+<!-- 根据id修改用户信息-->
+    <update id="update" parameterType="com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskUser" >
+        UPDATE scheduled_task_user
+        SET
+        <if test="password != null and password != ''">
+            password = #{password},
+        </if>
+        role = #{role},
+        permission = #{permission}
+        WHERE id = #{id}
+    </update>
+
+
+
+</mapper>

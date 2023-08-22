@@ -15,7 +15,7 @@
  *
  */
 
-package com.xiaohe.ScheduledTask.admin.core.corn;
+package com.xiaohe.ScheduledTask.admin.core.cron;
 
 import java.io.Serializable;
 import java.text.ParseException;
