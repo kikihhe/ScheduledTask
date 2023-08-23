@@ -14,6 +14,22 @@ public class ScheduledTaskInfo {
     private int id;
 
     /**
+     * 该任务的名称
+     */
+    private String executorHandler;
+
+    /**
+     * 最近一次的触发时间
+     */
+    private long triggerLastTime;
+
+    /**
+     * 下一次触发时间
+     */
+    private long triggerNextTime;
+
+
+    /**
      * 任务所属的组(执行器)
      */
     private int jobGroup;
@@ -64,11 +80,6 @@ public class ScheduledTaskInfo {
     private String executorRouteStrategy;
 
     /**
-     * 该任务的jobHandler的名称
-     */
-    private String executorHandler;
-
-    /**
      * 执行参数
      */
     private String executorParam;
@@ -114,19 +125,9 @@ public class ScheduledTaskInfo {
     private String childJobId;
 
     /**
-     * 该任务的触发状态，0:停止, 1:运行
+     * 该任务的触发状态，0:停止即删除 , 1:正常
      */
     private int triggerStatus;
-
-    /**
-     * 最近一次的触发时间
-     */
-    private long triggerLastTime;
-
-    /**
-     * 下一次触发时间
-     */
-    private long triggerNextTime;
 
 
     public int getId() {

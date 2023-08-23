@@ -1,7 +1,10 @@
 package com.xiaohe.ScheduledTask.admin.dao;
 
+import com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author : 小何
@@ -19,14 +22,14 @@ public interface ScheduledTaskInfoMapper {
      * @param scheduledTaskInfo
      * @return 影响行数
      */
-    public int scheduleUpdate(ScheduledTaskInfoMapper scheduledTaskInfo);
+    public int scheduleUpdate(ScheduledTaskInfo scheduledTaskInfo);
 
     /**
      * 修改定时任务的全部信息
      * @param scheduledTaskInfo
      * @return
      */
-    public int update(ScheduledTaskInfoMapper scheduledTaskInfo);
+    public int update(ScheduledTaskInfo scheduledTaskInfo);
 
     /**
      * 根据id删除定时任务
@@ -47,7 +50,15 @@ public interface ScheduledTaskInfoMapper {
      * @param scheduledTaskInfo
      * @return
      */
-    public int save(ScheduledTaskInfoMapper scheduledTaskInfo);
+    public int save(ScheduledTaskInfo scheduledTaskInfo);
+
+    /**
+     * 查询下次执行时间小于 maxNextTime 的定时任务
+     * @param maxNextTime
+     * @return
+     */
+    public List<ScheduledTaskInfo> scheduleJobQuery(@Param("nextTime") long maxNextTime,
+                                                    @Param("pagesize") int pagesize);
 
 
 

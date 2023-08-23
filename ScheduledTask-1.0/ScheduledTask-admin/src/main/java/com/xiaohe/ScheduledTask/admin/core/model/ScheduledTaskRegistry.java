@@ -19,7 +19,7 @@ public class ScheduledTaskRegistry {
     private String registryGroup;
 
     /**
-     * 执行器的 appName
+     * 任务名称
      */
     private String registryKey;
 

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaohe.ScheduledTask.admin.dao.ScheduledTaskInfoMapper">
+
+    <resultMap id="ScheduledTaskInfo" type="com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskInfo" >
+        <result column="id" property="id" />
+
+        <result column="job_group" property="jobGroup" />
+        <result column="job_desc" property="jobDesc" />
+
+        <result column="add_time" property="addTime" />
+        <result column="update_time" property="updateTime" />
+
+        <result column="author" property="author" />
+        <result column="alarm_email" property="alarmEmail" />
+
+        <result column="schedule_type" property="scheduleType" />
+        <result column="schedule_conf" property="scheduleConf" />
+        <result column="misfire_strategy" property="misfireStrategy" />
+
+        <result column="executor_route_strategy" property="executorRouteStrategy" />
+        <result column="executor_handler" property="executorHandler" />
+        <result column="executor_param" property="executorParam" />
+        <result column="executor_block_strategy" property="executorBlockStrategy" />
+        <result column="executor_timeout" property="executorTimeout" />
+        <result column="executor_fail_retry_count" property="executorFailRetryCount" />
+
+        <result column="glue_type" property="glueType" />
+        <result column="glue_source" property="glueSource" />
+        <result column="glue_remark" property="glueRemark" />
+        <result column="glue_updatetime" property="glueUpdatetime" />
+
+        <result column="child_jobid" property="childJobId" />
+
+        <result column="trigger_status" property="triggerStatus" />
+        <result column="trigger_last_time" property="triggerLastTime" />
+        <result column="trigger_next_time" property="triggerNextTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+		t.job_group,
+		t.job_desc,
+		t.add_time,
+		t.update_time,
+		t.author,
+		t.alarm_email,
+		t.schedule_type,
+		t.schedule_conf,
+		t.misfire_strategy,
+		t.executor_route_strategy,
+		t.executor_handler,
+		t.executor_param,
+		t.executor_block_strategy,
+		t.executor_timeout,
+		t.executor_fail_retry_count,
+		t.glue_type,
+		t.glue_source,
+		t.glue_remark,
+		t.glue_updatetime,
+		t.child_jobid,
+		t.trigger_status,
+		t.trigger_last_time,
+		t.trigger_next_time
+    </sql>
+
+    <select id="scheduleJobQuery" parameterType="java.util.HashMap" resultMap="ScheduledTaskInfo">
+        SELECT <include refid="Base_Column_List"/>
+        FROM scheduled_task_info t
+        WHERE t.trigger_status = 1
+            AND t.trigger_next_time <![CDATA[ <= ]]> #{nextTime}
+        ORDER BY id ASC
+        LIMIT #{pagesize}
+    </select>
+</mapper>
