@@ -1,4 +1,4 @@
-package com.xiaohe.ScheduledTask.admin.core.util;
+package com.xiaohe.ScheduledTask.core.util;
 
 import java.util.Objects;
 

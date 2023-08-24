@@ -2,7 +2,7 @@ package com.xiaohe.ScheduledTask.admin.core.thread;
 
 import com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskInfo;
 import com.xiaohe.ScheduledTask.admin.core.trigger.ScheduledTaskTrigger;
-import com.xiaohe.ScheduledTask.admin.core.util.ObjectUtil;
+import com.xiaohe.ScheduledTask.core.util.ObjectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

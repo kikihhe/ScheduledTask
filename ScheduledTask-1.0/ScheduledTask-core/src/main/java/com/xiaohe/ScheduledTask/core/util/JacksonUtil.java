@@ -1,4 +1,4 @@
-package com.xiaohe.ScheduledTask.admin.core.util;
+package com.xiaohe.ScheduledTask.core.util;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;

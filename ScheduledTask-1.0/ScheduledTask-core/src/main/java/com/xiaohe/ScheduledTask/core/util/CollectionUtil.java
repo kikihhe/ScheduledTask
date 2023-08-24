@@ -1,6 +1,7 @@
-package com.xiaohe.ScheduledTask.admin.core.util;
+package com.xiaohe.ScheduledTask.core.util;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author : 小何
@@ -10,5 +11,9 @@ import java.util.Collection;
 public class CollectionUtil {
     public static boolean isEmpty(Collection<?> collection) {
         return collection == null || collection.isEmpty();
+    }
+
+    public static boolean isEmpty(Map map) {
+        return map == null || map.isEmpty();
     }
 }

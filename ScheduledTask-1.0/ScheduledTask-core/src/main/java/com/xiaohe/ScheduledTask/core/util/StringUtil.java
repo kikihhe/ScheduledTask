@@ -1,4 +1,4 @@
-package com.xiaohe.ScheduledTask.admin.core.util;
+package com.xiaohe.ScheduledTask.core.util;
 
 /**
  * @author : 小何

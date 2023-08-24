@@ -16,7 +16,7 @@ public class RegistryParam implements Serializable {
     private String registryGroup;
 
     /**
-     * 定时任务名称
+     * 执行器标识, appname
      */
     private String registryKey;
 
