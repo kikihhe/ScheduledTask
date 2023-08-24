@@ -69,9 +69,13 @@ public class ScheduledTaskExecutor {
     }
 
     /**
-     * 销毁执行器组件
+     * 销毁执行器组件，例如内嵌服务器、执行任务的线程、将执行器注册到调度中心的线程
      */
     public void destroy() {
+        // 停止内嵌服务器
+        stopEmbedServer();
+        // 停止真正执行任务的各个线程
+
 
     }
 
@@ -237,6 +241,12 @@ public class ScheduledTaskExecutor {
 
     public static List<AdminBiz> getAdminBizList(){
         return adminBizList;
+    }
+
+    private void stopEmbedServer() {
+        if (embedServer != null) {
+            embedServer.stop();
+        }
     }
 
 }
