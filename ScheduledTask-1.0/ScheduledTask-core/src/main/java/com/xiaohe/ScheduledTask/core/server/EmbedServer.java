@@ -1,13 +1,18 @@
 package com.xiaohe.ScheduledTask.core.server;
 
+import com.xiaohe.ScheduledTask.core.biz.ExecutorBiz;
+import com.xiaohe.ScheduledTask.core.biz.impl.ExecutorBizImpl;
+import com.xiaohe.ScheduledTask.core.biz.model.IdleBeatParam;
 import com.xiaohe.ScheduledTask.core.biz.model.Result;
 import com.xiaohe.ScheduledTask.core.biz.model.TriggerParam;
 import com.xiaohe.ScheduledTask.core.executor.ScheduledTaskExecutor;
-import com.xiaohe.ScheduledTask.core.handler.IJobHandler;
 import com.xiaohe.ScheduledTask.core.handler.impl.MethodJobHandler;
 import com.xiaohe.ScheduledTask.core.thread.JobThread;
+import com.xiaohe.ScheduledTask.core.util.GsonTool;
 import com.xiaohe.ScheduledTask.core.util.JacksonUtil;
 import com.xiaohe.ScheduledTask.core.util.ObjectUtil;
+import com.xiaohe.ScheduledTask.core.util.RemotingUtil;
+import com.xiaohe.ScheduledTask.core.util.StringUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -28,8 +33,11 @@ import java.util.concurrent.*;
  */
 public class EmbedServer {
     private static final Logger logger = LoggerFactory.getLogger(EmbedServer.class);
+    private ExecutorBiz executorBiz;
 
-    public void start(final String address, final int port, final String appname) {
+
+    public void start(final String address, final int port, final String appname, final String accessToken) {
+        executorBiz = new ExecutorBizImpl();
         // 先创建好的业务线程池
         ThreadPoolExecutor bizThreadPool = new ThreadPoolExecutor(
                 0,
@@ -68,7 +76,7 @@ public class EmbedServer {
                                     // 聚合消息的，入站处理器
                                     .addLast(new HttpObjectAggregator(5 * 1024 * 1024))
                                     // 最后收到消息，处理消息的handler
-                                    .addLast(new EmbedHttpServerHandler(bizThreadPool));
+                                    .addLast(new EmbedHttpServerHandler(bizThreadPool, executorBiz, accessToken));
 
                         }
                     })
@@ -98,25 +106,36 @@ public class EmbedServer {
      * 处理调度中心发来的调用信息
      */
     public static class EmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+        /**
+         * 接收到调度中心的信息后，由这个线程池区分，再调用executorBiz做具体的处理
+         */
         private ThreadPoolExecutor bizThreadPool;
+        /**
+         * 调度中心发来信息后做出具体回应的类
+         */
+        private ExecutorBiz executorBiz;
+        private String accessToken;
 
-        public EmbedHttpServerHandler(ThreadPoolExecutor bizThreadPool) {
+        public EmbedHttpServerHandler(ThreadPoolExecutor bizThreadPool, ExecutorBiz executorBiz, String accessToken) {
             this.bizThreadPool = bizThreadPool;
+            this.executorBiz = executorBiz;
+            this.accessToken = accessToken;
         }
-
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
             String requestData = msg.content().toString(CharsetUtil.UTF_8);
             HttpMethod method = msg.getMethod();
+            String uri = msg.getUri();
+            String accessToken = msg.headers().get(RemotingUtil.SCHEDULED_TASK_ACCESS_TOKEN);
             // 判断HTTP链接是否还活着
             boolean keepAlive = HttpUtil.isKeepAlive(msg);
             bizThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     // 调度定时任务，得到返回结果
-                    Object responseObj = process(method, requestData);
-                    String responseJson = JacksonUtil.writeValueAsString(responseObj);
+                    Object responseObj = process(method, uri, requestData, accessToken);
+                    String responseJson = GsonTool.toJson(responseObj);
                     // 将调用结果回复给调度中心
                     writeResponse(ctx, keepAlive, responseJson);
                 }
@@ -125,16 +144,43 @@ public class EmbedServer {
 
         /**
          * 使用 ScheduledTaskExecutor 中收集好的bean和method去执行定时任务
+         *
          * @param httpMethod
          * @param requestData
          * @return
          */
-        public Object process(HttpMethod httpMethod, String requestData) {
+        private Object process(HttpMethod httpMethod, String uri, String requestData, String accessTokenReq) {
+            // 参数校验
             if (!HttpMethod.POST.equals(httpMethod)) {
                 return new Result<String>(Result.FAIL_CODE, "invalid request, HttpMethod not valid");
             }
+            if (!StringUtil.hasText(uri)) {
+                return new Result<String>(Result.FAIL_CODE, "invalid request, uri-mapping empty.");
+            }
+            if (!StringUtil.hasText(accessTokenReq) || !StringUtil.hasText(accessToken) || !accessTokenReq.equals(accessToken)) {
+                return new Result<String>(Result.FAIL_CODE, "the access token is wrong!");
+            }
             try {
-                TriggerParam triggerParam = (TriggerParam) JacksonUtil.readValue(requestData, TriggerParam.class);
+                // 判断从调度中心发来的信息是什么类型，调度信息、心跳检测、忙碌检测
+                switch (uri) {
+                    case "/run":
+                        // 执行任务
+                        TriggerParam triggerParam = GsonTool.fromJson(requestData, TriggerParam.class);
+                        return executorBiz.run(triggerParam);
+
+                    case "/beat":
+                        // 心跳检测, 回复一下
+                        return executorBiz.beat();
+                    case "/idleBeat":
+                        // 调度中心使用了忙碌转移策略，现在看看负责这个任务的线程是不是忙碌状态
+                        IdleBeatParam idleBeatParam = GsonTool.fromJson(requestData, IdleBeatParam.class);
+                        return executorBiz.idleBeat(idleBeatParam);
+                    default:
+                        return new Result<String>(Result.FAIL_CODE, "invalid request, uri-mapping " + uri + " not found")
+                }
+
+
+                TriggerParam triggerParam = (TriggerParam) GsonTool.fromJson(requestData, TriggerParam.class);
                 // 通过 jobId 从jobThreadRepository中获取执行负责该任务的线程
                 JobThread jobThread = ScheduledTaskExecutor.loadJobThread(triggerParam.getJobId());
                 MethodJobHandler methodJobHandler = (MethodJobHandler) ScheduledTaskExecutor.loadJobHandler(triggerParam.getExecutorHandler());

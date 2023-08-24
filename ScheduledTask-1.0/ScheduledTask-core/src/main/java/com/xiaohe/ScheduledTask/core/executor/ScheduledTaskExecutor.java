@@ -1,18 +1,19 @@
 package com.xiaohe.ScheduledTask.core.executor;
 
+import com.xiaohe.ScheduledTask.core.biz.AdminBiz;
+import com.xiaohe.ScheduledTask.core.biz.client.AdminBizClient;
 import com.xiaohe.ScheduledTask.core.handler.IJobHandler;
 import com.xiaohe.ScheduledTask.core.handler.annotation.ScheduledTask;
 import com.xiaohe.ScheduledTask.core.handler.impl.MethodJobHandler;
 import com.xiaohe.ScheduledTask.core.server.EmbedServer;
 import com.xiaohe.ScheduledTask.core.thread.JobThread;
-import com.xiaohe.ScheduledTask.core.util.IpUtil;
-import com.xiaohe.ScheduledTask.core.util.NetUtil;
-import com.xiaohe.ScheduledTask.core.util.ObjectUtil;
-import com.xiaohe.ScheduledTask.core.util.StringUtil;
+import com.xiaohe.ScheduledTask.core.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -22,15 +23,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ScheduledTaskExecutor {
     private static Logger logger = LoggerFactory.getLogger(ScheduledTaskExecutor.class);
+    /**
+     * 该执行器所属的appname
+     */
     private String appname;
+    /**
+     * 所有调度中心的IP地址，以逗号隔开
+     */
     private String adminAddresses;
+
+    private String accessToken;
 
     /**
      * 存放IJobHandler的Map
      * key : 定时任务名称
      * value : JobHandler
      */
-    private static ConcurrentHashMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, MethodJobHandler> jobHandlerRepository = new ConcurrentHashMap<>();
 
     /**
      * 存放定时任务于线程对应关系的Map
@@ -39,13 +48,23 @@ public class ScheduledTaskExecutor {
      */
     private static ConcurrentHashMap<Integer, JobThread> jobThreadRepository = new ConcurrentHashMap<>();
 
+
+    /**
+     * 该成员变量是用来存放AdminBizClient对象的，而该对象是用来向调度中心发送注册信息的
+     */
+    private static List<AdminBiz> adminBizList;
+
+
     /**
      * 启动执行器组件
      * 1. 初始化调度中心集合
      * 2. 启动执行器服务器，使其接收消息
      */
     public void start() {
+        // 初始化执行器服务端，用于接收调度中心的调度任务
         initEmbedServer(appname, adminAddresses);
+        // 初始化执行器客户端，用于自动注册、发送各种日志信息
+        initAdminBizList(adminAddresses, accessToken);
 
     }
 
@@ -107,7 +126,6 @@ public class ScheduledTaskExecutor {
         registJobHandler(name, new MethodJobHandler(bean, method, initMethod, destroyMethod));
 
 
-
     }
 
     /**
@@ -116,7 +134,7 @@ public class ScheduledTaskExecutor {
      * @param name
      * @return
      */
-    public static IJobHandler loadJobHandler(String name) {
+    public static MethodJobHandler loadJobHandler(String name) {
         return jobHandlerRepository.get(name);
     }
 
@@ -127,7 +145,7 @@ public class ScheduledTaskExecutor {
      * @param jobHandler
      * @return
      */
-    public static IJobHandler registJobHandler(String name, IJobHandler jobHandler) {
+    public static IJobHandler registJobHandler(String name, MethodJobHandler jobHandler) {
         logger.info(">>>>>>>>>>> ScheduledTask register jobhandler success, name:{}, jobHandler:{}", name, jobHandler);
         jobHandlerRepository.put(name, jobHandler);
         return jobHandler;
@@ -135,8 +153,10 @@ public class ScheduledTaskExecutor {
 
 
     private EmbedServer embedServer = null;
+
     /**
      * 启动执行器内嵌的Netty服务器
+     *
      * @param appname
      * @param adminAddresses
      */
@@ -148,14 +168,14 @@ public class ScheduledTaskExecutor {
         String ip_port_address = IpUtil.getIpPort(ip, port);
         String address = "http://{ip_port}/".replace("{ip_port}", ip_port_address);
         embedServer = new EmbedServer();
-        embedServer.start(address, port, appname);
-
+        embedServer.start(address, port, appname, accessToken);
 
 
     }
 
     /**
      * 把定时任务对应的 jobThread 缓存到Map中, 并启动该线程
+     *
      * @param jobId
      * @param handler
      * @return
@@ -169,11 +189,54 @@ public class ScheduledTaskExecutor {
 
     /**
      * 查询执行某个定时任务的线程
+     *
      * @param jobId 定时任务id
      * @return 负责该定时任务的线程
      */
     public static JobThread loadJobThread(int jobId) {
         return jobThreadRepository.get(jobId);
+    }
+
+    /**
+     * 从 jobThreadRepository 中移除 执行某定时任务的线程
+     *
+     * @param jobId        需要被移除的线程 对应的定时任务的id
+     * @param removeReason 移除原因
+     * @return
+     */
+    public static JobThread removeJobThread(int jobId, String removeReason) {
+        JobThread oldJobThread = jobThreadRepository.remove(jobId);
+        if (ObjectUtil.isNotNull(oldJobThread)) {
+            // 终止该线程
+            oldJobThread.toStop(removeReason);
+            oldJobThread.interrupt();
+        }
+        return oldJobThread;
+    }
+
+    /**
+     * 初始化执行器客户端，客户端是 执行器向调度中心发送消息的。
+     *
+     * @param adminAddresses
+     * @param accessToken
+     */
+    private void initAdminBizList(String adminAddresses, String accessToken) {
+        if (!StringUtil.hasText(adminAddresses)) {
+            return;
+        }
+        // 如果有多个调度中心
+        String[] adminAddressList = adminAddresses.trim().split(",");
+        for (String address : adminAddressList) {
+            AdminBiz adminBiz = new AdminBizClient(address.trim(), accessToken);
+            if (CollectionUtil.isEmpty(adminBizList)) {
+                adminBizList = new ArrayList<>();
+            }
+            adminBizList.add(adminBiz);
+        }
+    }
+
+    public static List<AdminBiz> getAdminBizList(){
+        return adminBizList;
     }
 
 }
