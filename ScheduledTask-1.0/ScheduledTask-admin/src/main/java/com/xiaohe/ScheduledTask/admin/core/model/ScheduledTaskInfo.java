@@ -1,6 +1,7 @@
 package com.xiaohe.ScheduledTask.admin.core.model;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author : 小何
@@ -321,4 +322,6 @@ public class ScheduledTaskInfo {
     public void setTriggerNextTime(long triggerNextTime) {
         this.triggerNextTime = triggerNextTime;
     }
+
+
 }

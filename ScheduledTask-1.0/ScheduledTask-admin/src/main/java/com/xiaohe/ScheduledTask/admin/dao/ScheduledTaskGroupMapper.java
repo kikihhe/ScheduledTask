@@ -1,6 +1,7 @@
 package com.xiaohe.ScheduledTask.admin.dao;
 
 import com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskGroup;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
  * @Description : 操作执行器的mapper
  * @date : 2023-08-22 22:54
  */
+@Mapper
 public interface ScheduledTaskGroupMapper {
     /**
      * 查询所有执行器
@@ -32,11 +34,18 @@ public interface ScheduledTaskGroupMapper {
     public int save(ScheduledTaskGroup scheduledTaskGroup);
 
     /**
-     * 修改执行器
+     * 修改单个执行器组
      * @param scheduledTaskGroup
      * @return
      */
     public int update(ScheduledTaskGroup scheduledTaskGroup);
+
+    /**
+     * 修改多个执行器组
+     * @param groupList
+     * @return
+     */
+    public int updateBatch(@Param("groupList") List<ScheduledTaskGroup> groupList);
 
     /**
      * 删除执行器

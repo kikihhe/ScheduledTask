@@ -1,6 +1,7 @@
 package com.xiaohe.ScheduledTask.admin.core.model;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,7 +17,7 @@ public class ScheduledTaskGroup {
     /**
      * 执行器中配置的项目名称
      */
-    private String appName;
+    private String appname;
 
     /**
      * 中文名
@@ -41,6 +42,11 @@ public class ScheduledTaskGroup {
      */
     private List<String> registryList;
 
+    /**
+     * 此执行器组的更新时间
+     */
+    private Date updateTime;
+
     public int getId() {
         return id;
     }
@@ -49,12 +55,12 @@ public class ScheduledTaskGroup {
         this.id = id;
     }
 
-    public String getAppName() {
-        return appName;
+    public String getAppname() {
+        return appname;
     }
 
-    public void setAppName(String appName) {
-        this.appName = appName;
+    public void setAppname(String appname) {
+        this.appname = appname;
     }
 
     public String getTitle() {
@@ -87,5 +93,13 @@ public class ScheduledTaskGroup {
         }
         List<String> list = Arrays.asList(addressList.split(","));
         return list;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 }

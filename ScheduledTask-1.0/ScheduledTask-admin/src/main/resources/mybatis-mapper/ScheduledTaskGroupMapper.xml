@@ -5,5 +5,44 @@
 <mapper namespace="com.xiaohe.ScheduledTask.admin.dao.ScheduledTaskGroupMapper">
 
 
+    <resultMap id="ScheduledTaskGroup" type="com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskGroup" >
+        <result column="id" property="id" />
+        <result column="app_name" property="appname" />
+        <result column="title" property="title" />
+        <result column="address_type" property="addressType" />
+        <result column="address_list" property="addressList" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+		t.app_name,
+		t.title,
+		t.address_type,
+		t.address_list,
+		t.update_time
+    </sql>
+
+    <update id="update" parameterType="com.xiaohe.ScheduledTask.admin.core.model.ScheduledTaskGroup" >
+        UPDATE xxl_job_group
+        SET `app_name` = #{appname},
+            `title` = #{title},
+            `address_type` = #{addressType},
+            `address_list` = #{addressList},
+            `update_time` = #{updateTime}
+        WHERE id = #{id}
+    </update>
+    <update id="updateBatch" parameterType="java.util.ArrayList">
+        <foreach collection="groupList" item="group" index="index" separator=";">
+            UPDATE xxl_job_group
+            SET `app_name` = #{group.appname},
+            `title` = #{group.title},
+            `address_type` = #{group.addressType},
+            `address_list` = #{group.addressList},
+            `update_time` = #{group.updateTime}
+            WHERE id = #{group.id}
+        </foreach>
+    </update>
+
 
 </mapper>

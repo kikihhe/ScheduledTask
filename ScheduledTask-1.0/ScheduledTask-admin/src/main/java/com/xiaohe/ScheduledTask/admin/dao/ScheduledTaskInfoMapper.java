@@ -10,7 +10,8 @@ import java.util.List;
  * @author : 小何
  * @Description :
  * @date : 2023-08-22 21:22
- */@Mapper
+ */
+@Mapper
 public interface ScheduledTaskInfoMapper {
     /**
      * 查询所有定时任务数量

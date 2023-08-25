@@ -124,7 +124,7 @@ public class ExecutorRegistryThread {
                         logger.info(">>>>>>>>>>> ScheduledTask registry-remove success, registryParam:{}, registryResult:{}", new Object[]{registryParam, removeResult});
                         break;
                     } else {
-                        logger.info(">>>>>>>>>>> ScheduledTask registry-remove fail, registryParam:{}, registryResult:{}", new Object[]{registryParam, registryResult});
+                        logger.info(">>>>>>>>>>> ScheduledTask registry-remove fail, registryParam:{}, registryResult:{}", new Object[]{registryParam, removeResult});
                     }
                 } catch (Exception e) {
                     if (!toStop) {
