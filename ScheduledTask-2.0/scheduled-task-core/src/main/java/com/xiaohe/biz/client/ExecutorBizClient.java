@@ -8,7 +8,7 @@ import com.xiaohe.biz.model.TriggerParam;
 
 /**
  * @author : 小何
- * @Description :
+ * @Description : 调度中心给执行器发送消息的接口
  * @date : 2023-09-01 10:52
  */
 public class ExecutorBizClient implements ExecutorBiz {
