@@ -38,7 +38,7 @@ public class TriggerParam implements Serializable {
     /**
      * 日志id
      */
-    private long lonId;
+    private long logId;
 
     /**
      * 记录日志的时间
@@ -110,12 +110,12 @@ public class TriggerParam implements Serializable {
         this.executorTimeout = executorTimeout;
     }
 
-    public long getLonId() {
-        return lonId;
+    public long getLogId() {
+        return logId;
     }
 
-    public void setLonId(long lonId) {
-        this.lonId = lonId;
+    public void setLogId(long logId) {
+        this.logId = logId;
     }
 
     public long getLogDateTime() {

@@ -73,12 +73,12 @@ public class ScheduledTaskLog {
     /**
      * 执行响应码
      */
-    private int handlerCode;
+    private int handleCode;
 
     /**
      * 执行任务信息
      */
-    private String handlerMsg;
+    private String handleMsg;
 
     /**
      * 警报的状态码
@@ -186,20 +186,20 @@ public class ScheduledTaskLog {
         this.handleTime = handleTime;
     }
 
-    public int getHandlerCode() {
-        return handlerCode;
+    public int getHandleCode() {
+        return handleCode;
     }
 
-    public void setHandlerCode(int handlerCode) {
-        this.handlerCode = handlerCode;
+    public void setHandleCode(int handleCode) {
+        this.handleCode = handleCode;
     }
 
-    public String getHandlerMsg() {
-        return handlerMsg;
+    public String getHandleMsg() {
+        return handleMsg;
     }
 
-    public void setHandlerMsg(String handlerMsg) {
-        this.handlerMsg = handlerMsg;
+    public void setHandleMsg(String handleMsg) {
+        this.handleMsg = handleMsg;
     }
 
     public int getAlarmStatus() {

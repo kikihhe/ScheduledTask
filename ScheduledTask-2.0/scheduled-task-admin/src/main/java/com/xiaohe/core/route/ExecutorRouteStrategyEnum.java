@@ -1,11 +1,21 @@
 package com.xiaohe.core.route;
 
+import com.xiaohe.core.route.strategy.*;
+
 /**
  * @author : 小何
  * @Description : 调度策略的枚举类
  * @date : 2023-08-31 20:00
  */
 public enum ExecutorRouteStrategyEnum {
+
+    FIRST("jobconf_route_first", new ExecutorRouterFirst()),
+    LAST("jobconf_route_last", new ExecutorRouterLast()),
+    ROUND("jobconf_route_round", new ExecutorRouterRound()),
+    RANDOM("jobconf_route_random", new ExecutorRouterRandom()),
+    LRU("jobconf_route_lru", new ExecutorRouterLRU()),
+    LFU("jobconf_route_lfu", new ExecutorRouterLFU()),
+
     ;
     /**
      * 调度策略
