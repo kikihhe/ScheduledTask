@@ -1,6 +1,9 @@
 package com.xiaohe.core.conf;
 
+import com.xiaohe.core.scheduler.TaskScheduler;
 import com.xiaohe.mapper.*;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,14 +16,19 @@ import java.util.Arrays;
  * @date : 2023-08-31 16:57
  */
 @Component
-public class ScheduledTaskAdminConfig {
+public class ScheduledTaskAdminConfig implements InitializingBean, DisposableBean {
 
-    private static final ScheduledTaskAdminConfig adminConfig = null;
+    private static ScheduledTaskAdminConfig adminConfig = null;
 
     public static ScheduledTaskAdminConfig getAdminConfig() {
         return adminConfig;
 
     }
+
+
+
+
+
 
     @Value("${scheduled.task.i18n}")
     private String i18n;
@@ -54,6 +62,33 @@ public class ScheduledTaskAdminConfig {
 
     @Resource
     private ScheduledTaskUserMapper scheduledTaskUserMapper;
+
+    private TaskScheduler scheduler;
+
+
+    /**
+     * 所有容器初始化后执行
+     * @throws Exception
+     */
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        adminConfig = this;
+        // 初始化各种组件
+        scheduler = new TaskScheduler();
+        scheduler.init();
+    }
+
+    /**
+     * 容器销毁时执行
+     * @throws Exception
+     */
+    @Override
+    public void destroy() throws Exception {
+        // 结束各种组件，回收资源
+        scheduler.destroy();
+    }
+
+
 
     public String getI18n() {
         if (!Arrays.asList("zh_CN", "zh_TC", "en").contains(i18n)) {
@@ -101,4 +136,6 @@ public class ScheduledTaskAdminConfig {
     public ScheduledTaskUserMapper getScheduledTaskUserMapper() {
         return scheduledTaskUserMapper;
     }
+
+
 }

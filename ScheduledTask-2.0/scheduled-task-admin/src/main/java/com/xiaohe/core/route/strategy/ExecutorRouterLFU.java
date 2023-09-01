@@ -55,7 +55,8 @@ public class ExecutorRouterLFU extends ExecutorRouter {
         for (String address : delete) {
             hashMap.remove(address);
         }
-        // 开始挑选, 首先将 hashMap 中的所有IP按照使用次数排序
+        // 开始挑选, 首先将 hashMap 中的所有IP按照使用次数 从小到大排序
+        // 排序后选择第一个，也就是使用频率最小的，用完后将使用次数加一
         ArrayList<Map.Entry<String, Integer>> list = new ArrayList<>(hashMap.entrySet());
         Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
             @Override
@@ -63,7 +64,6 @@ public class ExecutorRouterLFU extends ExecutorRouter {
                 return o1.getValue().compareTo(o2.getValue());
             }
         });
-        // 选择第一个，也就是使用频率最小的
         Map.Entry<String, Integer> entry = list.get(0);
         String address = entry.getKey();
         entry.setValue(entry.getValue() + 1);
