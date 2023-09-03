@@ -21,7 +21,7 @@ public class RemotingUtil {
 
     private static Logger logger = LoggerFactory.getLogger(RemotingUtil.class);
 
-    public static final String SCHEDULED_TASK_ACCESS_TOKEN = "SCHEDULED_TASK-ACCESS-TOKEN";
+    public static final String SCHEDULED_TASK_ACCESS_TOKEN = "XXL-JOB-ACCESS-TOKEN";
 
 
     /**

@@ -42,7 +42,7 @@ public class ScheduledTaskFileAppender {
         if (!logPathDir.exists()) {
             logPathDir.mkdirs();
         }
-        String logBasePath = logPathDir.getPath();
+        logBasePath = logPathDir.getPath();
 
         // 创建 glue代码文件夹
         File glueBaseDir = new File(logPathDir, "gluesource");

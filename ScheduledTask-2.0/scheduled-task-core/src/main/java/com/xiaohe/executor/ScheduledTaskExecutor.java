@@ -2,6 +2,8 @@ package com.xiaohe.executor;
 
 import com.xiaohe.biz.AdminBiz;
 import com.xiaohe.biz.client.AdminBizClient;
+import com.xiaohe.log.ScheduledTaskFileAppender;
+import com.xiaohe.thread.TriggerCallbackThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,8 +74,17 @@ public class ScheduledTaskExecutor {
      */
     public void start() {
 
+        // 初始化日志的存储路径
+        ScheduledTaskFileAppender.initLogPath(logPath);
+
         // 初始化所有 执行器给调度中心发送消息 的客户端
         initAdminBizList(adminAddresses, accessToken);
+
+        // 启动 将执行结果回调给调度中心 的线程
+        TriggerCallbackThread.getInstance().start();
+
+        // 启动执行器的服务端，用于接收调度中心发送的消息，如:心跳检测、忙碌检测、任务执行。
+
 
 
     }
