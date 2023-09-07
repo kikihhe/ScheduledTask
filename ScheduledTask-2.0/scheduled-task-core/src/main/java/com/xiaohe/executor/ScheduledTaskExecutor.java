@@ -3,12 +3,14 @@ package com.xiaohe.executor;
 import com.xiaohe.biz.AdminBiz;
 import com.xiaohe.biz.client.AdminBizClient;
 import com.xiaohe.log.ScheduledTaskFileAppender;
+import com.xiaohe.server.EmbedServer;
 import com.xiaohe.thread.TriggerCallbackThread;
+import com.xiaohe.util.IpUtil;
+import com.xiaohe.util.NetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,6 +68,8 @@ public class ScheduledTaskExecutor {
      */
     private static List<AdminBiz> adminBizList;
 
+    private EmbedServer embedServer = null;
+
 
 
     /**
@@ -84,8 +88,7 @@ public class ScheduledTaskExecutor {
         TriggerCallbackThread.getInstance().start();
 
         // 启动执行器的服务端，用于接收调度中心发送的消息，如:心跳检测、忙碌检测、任务执行。
-
-
+        initEmbedServer(address, ip, port, appname, accessToken);
 
     }
 
@@ -108,6 +111,40 @@ public class ScheduledTaskExecutor {
                 }
                 adminBizList.add(adminBiz);
             }
+        }
+    }
+
+    /**
+     * 初始化执行器端的服务器
+     * @param address
+     * @param ip
+     * @param port
+     * @param appname
+     * @param accessToken
+     */
+    public void initEmbedServer(String address, String ip, int port, String appname, String accessToken) {
+        // 初始化IP、PORT、ADDRESS
+        port = port > 0 ? port : NetUtil.findAvailablePort(9999);
+        ip = (ip != null && !ip.trim().isEmpty()) ? ip : IpUtil.getIp();
+        // 如果address为空，说明真的没有配置，那就用 ip + port 组装一个
+        if (address == null || address.trim().isEmpty()) {
+            String ip_port_address = IpUtil.getIpPort(ip, port);
+            address = "http://{ip_port}".replace("{ip_port}", ip_port_address);
+        }
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            logger.warn(">>>>>>>>>>> scheduled-task accessToken is empty. To ensure system security, please set the accessToken.");
+        }
+        embedServer = new EmbedServer();
+        embedServer.start(address, port, appname, accessToken);
+    }
+
+
+    /**
+     * 停止执行器的内嵌服务器
+     */
+    private void stopEmbedServer() {
+        if (embedServer != null) {
+            embedServer.stop();
         }
     }
 

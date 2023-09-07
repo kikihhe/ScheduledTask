@@ -4,6 +4,8 @@ import com.xiaohe.core.model.ScheduledTaskGroup;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * @author : 小何
  * @Description :
@@ -13,4 +15,10 @@ import org.apache.ibatis.annotations.Param;
 public interface ScheduledTaskGroupMapper {
 
     public ScheduledTaskGroup loadById(@Param("id") int jobGroupId);
+
+    public List<ScheduledTaskGroup> findByAddressType(@Param("addressType") Integer addressType);
+
+    public int update(ScheduledTaskGroup xxlJobGroup);
+
+
 }

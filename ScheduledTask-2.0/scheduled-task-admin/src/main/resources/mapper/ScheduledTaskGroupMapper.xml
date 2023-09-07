@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xiaohe.mapper.ScheduledTaskGroupMapper">
 
-    <resultMap id="XxlJobGroup" type="com.xiaohe.core.model.ScheduledTaskGroup" >
+    <resultMap id="ScheduledTaskGroup" type="com.xiaohe.core.model.ScheduledTaskGroup" >
         <result column="id" property="id" />
         <result column="app_name" property="appname" />
         <result column="title" property="title" />
@@ -21,11 +21,29 @@
 		t.address_list,
 		t.update_time
     </sql>
+    <update id="update" parameterType="com.xiaohe.core.model.ScheduledTaskGroup">
+        UPDATE scheduled_task_group
+        SET `app_name` = #{appname},
+            `title` = #{title},
+            `address_type` = #{addressType},
+            `address_list` = #{addressList},
+            `update_time` = #{updateTime}
+        WHERE id = #{id}
+
+    </update>
 
     <select id="loadById" resultType="com.xiaohe.core.model.ScheduledTaskGroup">
         SELECT
         <include refid="Base_Column_List"/>
-        FROM xxl_job_group AS t
+        FROM scheduled_task_group AS t
         WHERE t.id = #{id}
+    </select>
+
+
+    <select id="findByAddressType" parameterType="integer" resultMap="ScheduledTaskGroup">
+        select <include refid="Base_Column_List"></include>
+            from scheduled_task_group t
+        where t.address_type = #{addressType}
+
     </select>
 </mapper>

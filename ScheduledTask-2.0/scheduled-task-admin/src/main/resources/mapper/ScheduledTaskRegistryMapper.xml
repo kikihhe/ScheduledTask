@@ -4,6 +4,56 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xiaohe.mapper.ScheduledTaskRegistryMapper">
 
+    <resultMap id="ScheduledTaskRegistry" type="com.xiaohe.core.model.ScheduledTaskRegistry" >
+        <result column="id" property="id" />
+        <result column="registry_group" property="registryGroup" />
+        <result column="registry_key" property="registryKey" />
+        <result column="registry_value" property="registryValue" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+		t.registry_group,
+		t.registry_key,
+		t.registry_value,
+		t.update_time
+    </sql>
+    <insert id="registrySave" parameterType="com.xiaohe.core.model.ScheduledTaskRegistry">
+        INSERT INTO scheduled_task_registry(`registry_group`, `registry_key`, `registry_value`, `update_time`)
+        VALUES (#{registryGroup}, #{registryKey}, #{registryValue}, #{updateTime})
+    </insert>
+    <update id="registryUpdate" parameterType="integer">
+        UPDATE scheduled_task_registry
+        SET `update_time` = #{updateTime}
+        WHERE `regsirty_group` = #{registryGroup}
+        and `registry_key` = #{registryKey}
+        and `registry_value` = #{registryValue}
+    </update>
+
+    <delete id="removeDead">
+        DELETE FROM scheduled_task_registry
+        WHERE id in
+            <foreach collection="ids" separator="," open="(" close=")" item="id">
+                #{id}
+            </foreach>
+    </delete>
+    <delete id="registryDelete">
+        DELETE FROM scheduled_task_registry
+        WHERE `registry_group` = #{registryGroup}
+            AND `registry_key` = #{registryKey}
+            AND `registry_value` = #{registryValue};
+    </delete>
 
 
+    <select id="findDead" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        SELECT t.id
+        FROM scheduled_task_registry AS t
+        WHERE t.update_time <![CDATA[  <  ]]> DATE_ADD(#{nowTime}, INTERVAL - #{timeout} SECOND)
+    </select>
+    <select id="findAll" resultType="com.xiaohe.core.model.ScheduledTaskRegistry">
+        SELECT <include refid="Base_Column_List"></include>
+        FROM scheduled_task_registry AS t
+        WHERE t.update_time <![CDATA[  >  ]]> DATE_ADD(#{nowTime}, INTERVAL - #{timeout} SECOND)
+    </select>
 </mapper>

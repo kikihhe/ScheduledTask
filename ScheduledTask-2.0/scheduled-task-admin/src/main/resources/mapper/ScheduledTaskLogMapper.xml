@@ -5,7 +5,7 @@
 <mapper namespace="com.xiaohe.mapper.ScheduledTaskLogMapper">
 
 
-    <resultMap id="XxlJobLog" type="com.xiaohe.core.model.ScheduledTaskLog" >
+    <resultMap id="ScheduledTaskLog" type="com.xiaohe.core.model.ScheduledTaskLog" >
         <result column="id" property="id" />
 
         <result column="job_group" property="jobGroup" />
@@ -72,5 +72,20 @@
             `executor_sharding_param` = #{executorShardingParam},
             `executor_fail_retry_count` = #{executorFailRetryCount}
         WHERE `id` = #{id}
+    </update>
+    <select id="load" resultType="com.xiaohe.core.model.ScheduledTaskLog" parameterType="long">
+        SELECT <include refid="Base_Column_List"></include>
+            FROM scheduled_task_log AS t
+        WHERE `id` = #{id}
+    </select>
+
+
+    <update id="updateHandleInfo">
+        update scheduled_task_log
+        set `handle_time` = #{handleTime},
+            `handle_code` = #{handleCode},
+            `handle_msg`  = #{handleMsg}
+        where `id` = #{id}
+
     </update>
 </mapper>
