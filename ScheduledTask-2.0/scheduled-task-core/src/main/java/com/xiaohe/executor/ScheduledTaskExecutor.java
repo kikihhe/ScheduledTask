@@ -7,16 +7,19 @@ import com.xiaohe.handler.annotation.ScheduledTask;
 import com.xiaohe.handler.impl.MethodJobHandler;
 import com.xiaohe.log.ScheduledTaskFileAppender;
 import com.xiaohe.server.EmbedServer;
+import com.xiaohe.thread.JobThread;
 import com.xiaohe.thread.TriggerCallbackThread;
 import com.xiaohe.util.IpUtil;
 import com.xiaohe.util.NetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -84,6 +87,10 @@ public class ScheduledTaskExecutor {
      */
     private static ConcurrentHashMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<>();
 
+    /**
+     * 存储执行定时任务的线程的Map
+     */
+    private static ConcurrentHashMap<Integer, JobThread> jobThreadRepository = new ConcurrentHashMap<>();
 
 
     /**
@@ -106,9 +113,29 @@ public class ScheduledTaskExecutor {
 
     }
 
+    public void destroy() throws Exception {
+        // 停止内嵌服务器，再停止各个线程
+        stopEmbedServer();
+        // 遍历停止各个执行任务的线程
+        for (Map.Entry<Integer, JobThread> entry : jobThreadRepository.entrySet()) {
+            JobThread oldJobThread = removeJobThread(entry.getKey(), "wen container destroy");
+            if (oldJobThread != null) {
+                try {
+                    oldJobThread.join();
+                } catch (InterruptedException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        }
+        jobThreadRepository.clear();
+        jobHandlerRepository.clear();
+        TriggerCallbackThread.getInstance().toStop();
+    }
+
 
     /**
      * 初始化所有 执行器给调度中心发送消息 的客户端
+     *
      * @param adminAddresses
      * @param accessToken
      */
@@ -130,6 +157,7 @@ public class ScheduledTaskExecutor {
 
     /**
      * 初始化执行器端的服务器
+     *
      * @param address
      * @param ip
      * @param port
@@ -164,8 +192,8 @@ public class ScheduledTaskExecutor {
 
     /**
      * 根据bean的名字获取定时任务bean
+     *
      * @param name
-     * @return
      */
     public static IJobHandler loadJobHandler(String name) {
         return jobHandlerRepository.get(name);
@@ -177,6 +205,7 @@ public class ScheduledTaskExecutor {
 
     /**
      * 子类调用这个方法将某一个bean的所有加了 ScheduledTask注解 的方法注册进 jobHandlerRepository集合中
+     *
      * @param method
      * @param bean
      * @param annotation 从注解中获取定时任务的名称
@@ -205,14 +234,48 @@ public class ScheduledTaskExecutor {
         registJobHandler(name, new MethodJobHandler(bean, method, initMethod, destroyMethod));
     }
 
+    /**
+     * 根据定时任务的id得到执行它的线程
+     *
+     * @param id
+     */
+    public JobThread loadJobThread(Integer id) {
+        return jobThreadRepository.get(id);
+    }
 
+    /**
+     * 移除定时任务绑定的线程, 从Map中取出来之后调用它的 toStop方法停止
+     *
+     * @param jobId
+     * @param removeOldReason
+     */
+    public static JobThread removeJobThread(int jobId, String removeOldReason) {
+        JobThread oldJobThread = jobThreadRepository.remove(jobId);
+        if (oldJobThread != null) {
+            oldJobThread.toStop(removeOldReason);
+            oldJobThread.interrupt();
+        }
+        return oldJobThread;
+    }
 
-
-
-
-
-
-
+    /**
+     * 注册新的定时任务，为它创建新的 JobThread
+     *
+     * @param jobId
+     * @param handler
+     * @param removeOldReason
+     */
+    public static JobThread registJobThread(int jobId, IJobHandler handler, String removeOldReason) {
+        JobThread jobThread = new JobThread(jobId, handler);
+        jobThread.start();
+        JobThread oldJobThread = jobThreadRepository.put(jobId, jobThread);
+        // 如果oldJobThread不为空，说明Map中已经存在了执行该任务的线程
+        if (oldJobThread != null) {
+            oldJobThread.toStop(removeOldReason);
+            oldJobThread.interrupt();
+        }
+        return jobThread;
+    }
 
 
     public static List<AdminBiz> getAdminBizList() {
@@ -223,28 +286,34 @@ public class ScheduledTaskExecutor {
     public void setAdminAddresses(String adminAddresses) {
         this.adminAddresses = adminAddresses;
     }
+
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
     }
+
     public void setAppname(String appname) {
         this.appname = appname;
     }
+
     public void setAddress(String address) {
         this.address = address;
     }
+
     public void setIp(String ip) {
         this.ip = ip;
     }
+
     public void setPort(int port) {
         this.port = port;
     }
+
     public void setLogPath(String logPath) {
         this.logPath = logPath;
     }
+
     public void setLogRetentionDays(int logRetentionDays) {
         this.logRetentionDays = logRetentionDays;
     }
-
 
 
 }

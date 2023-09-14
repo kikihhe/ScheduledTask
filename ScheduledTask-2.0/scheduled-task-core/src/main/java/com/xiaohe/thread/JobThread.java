@@ -112,8 +112,7 @@ public class JobThread extends Thread {
                 if (Objects.isNull(triggerParam)) {
                     // 如果为空说明队列中没有调度参数
                     if (idleTimes > 30 && triggerQueue.isEmpty()) {
-                        // TODO 调用 ScheduledTaskExecutor.removeJobThread(jobId. "stopReason") 将线程停止
-
+                        ScheduledTaskExecutor.removeJobThread(jobId, "trigger queue is empty for 30 idle times");
                     }
 
                 } else {

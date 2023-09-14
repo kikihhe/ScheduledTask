@@ -150,6 +150,7 @@ public class TriggerCallbackThread {
         triggerRetryCallbackThread.start();
     }
 
+
     /**
      * 具体的回调方法
      * @param callbackParamList
@@ -255,7 +256,7 @@ public class TriggerCallbackThread {
     /**
      * 停止 回调线程 和 回调重试线程
      */
-    private void toStop() {
+    public void toStop() {
         toStop = true;
         // 如果这两个线程不为空，让他们执行完最后的任务再结束
         if (triggerCallbackThread != null) {

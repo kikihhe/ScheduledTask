@@ -76,7 +76,7 @@ public class ScheduledTaskSpringExecutor extends ScheduledTaskExecutor implement
 
     @Override
     public void destroy() throws Exception {
-        // TODO 调用父类的销毁方法
+        super.destroy();
 
     }
 
