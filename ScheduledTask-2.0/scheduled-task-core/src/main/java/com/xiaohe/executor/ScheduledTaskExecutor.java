@@ -2,6 +2,9 @@ package com.xiaohe.executor;
 
 import com.xiaohe.biz.AdminBiz;
 import com.xiaohe.biz.client.AdminBizClient;
+import com.xiaohe.handler.IJobHandler;
+import com.xiaohe.handler.annotation.ScheduledTask;
+import com.xiaohe.handler.impl.MethodJobHandler;
 import com.xiaohe.log.ScheduledTaskFileAppender;
 import com.xiaohe.server.EmbedServer;
 import com.xiaohe.thread.TriggerCallbackThread;
@@ -9,9 +12,12 @@ import com.xiaohe.util.IpUtil;
 import com.xiaohe.util.NetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author : 小何
@@ -68,7 +74,15 @@ public class ScheduledTaskExecutor {
      */
     private static List<AdminBiz> adminBizList;
 
+    /**
+     * 执行器的服务端，用于接收调度中心发来的消息
+     */
     private EmbedServer embedServer = null;
+
+    /**
+     * 存储定时任务bean的Map
+     */
+    private static ConcurrentHashMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<>();
 
 
 
@@ -147,6 +161,58 @@ public class ScheduledTaskExecutor {
             embedServer.stop();
         }
     }
+
+    /**
+     * 根据bean的名字获取定时任务bean
+     * @param name
+     * @return
+     */
+    public static IJobHandler loadJobHandler(String name) {
+        return jobHandlerRepository.get(name);
+    }
+
+    public static IJobHandler registJobHandler(String name, IJobHandler jobHandler) {
+        return jobHandlerRepository.put(name, jobHandler);
+    }
+
+    /**
+     * 子类调用这个方法将某一个bean的所有加了 ScheduledTask注解 的方法注册进 jobHandlerRepository集合中
+     * @param method
+     * @param bean
+     * @param annotation 从注解中获取定时任务的名称
+     */
+    protected void registJobHandler(Method method, Object bean, ScheduledTask annotation) throws NoSuchMethodException {
+        if (annotation == null) {
+            return;
+        }
+        method.setAccessible(true);
+        // 获取 定时任务名称、bean的class对象(用于获取初始化方法、销毁方法)、方法名称
+        String name = annotation.value();
+        Class<?> clazz = bean.getClass();
+        String methodName = method.getName();
+
+        // 获取该任务的初始化方法、销毁方法
+        Method initMethod = null;
+        Method destroyMethod = null;
+        if (StringUtils.hasText(annotation.init())) {
+            initMethod = clazz.getDeclaredMethod(annotation.init());
+            initMethod.setAccessible(true);
+        }
+        if (StringUtils.hasText(annotation.destroy())) {
+            destroyMethod = clazz.getDeclaredMethod(annotation.destroy());
+            destroyMethod.setAccessible(true);
+        }
+        registJobHandler(name, new MethodJobHandler(bean, method, initMethod, destroyMethod));
+    }
+
+
+
+
+
+
+
+
+
 
 
     public static List<AdminBiz> getAdminBizList() {
