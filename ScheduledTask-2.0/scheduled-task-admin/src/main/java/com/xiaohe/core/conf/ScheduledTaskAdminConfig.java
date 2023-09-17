@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.sql.DataSource;
 import java.util.Arrays;
 
 /**
@@ -63,7 +64,11 @@ public class ScheduledTaskAdminConfig implements InitializingBean, DisposableBea
     @Resource
     private ScheduledTaskUserMapper scheduledTaskUserMapper;
 
+    @Resource
+    private DataSource dataSource;
+
     private TaskScheduler scheduler;
+
 
 
     /**
@@ -133,7 +138,16 @@ public class ScheduledTaskAdminConfig implements InitializingBean, DisposableBea
         return scheduledTaskRegistryMapper;
     }
 
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     public ScheduledTaskUserMapper getScheduledTaskUserMapper() {
+
         return scheduledTaskUserMapper;
     }
 

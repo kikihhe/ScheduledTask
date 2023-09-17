@@ -3,6 +3,10 @@ package com.xiaohe.core.scheduler;
 import com.xiaohe.biz.ExecutorBiz;
 import com.xiaohe.biz.client.ExecutorBizClient;
 import com.xiaohe.core.conf.ScheduledTaskAdminConfig;
+import com.xiaohe.core.thread.JobCompleteHelper;
+import com.xiaohe.core.thread.JobRegistryHelper;
+import com.xiaohe.core.thread.JobScheduleHelper;
+import com.xiaohe.core.thread.JobTriggerPoolHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +29,19 @@ public class TaskScheduler {
      * @throws Exception
      */
     public void init() throws Exception {
+        // 快慢线程池
+        JobTriggerPoolHelper.toStart();
+
+        // 注册线程池
+        JobRegistryHelper.getInstance().start();
+
+        // 调度中心接收到执行器的回调后做出对应处理的组件
+        JobCompleteHelper.getInstance().start();
+
+        // 从数据库中查出将要执行的任务，放入时间轮中，调用JobTriggerPoolHelper去发送任务执行的消息
+        JobScheduleHelper.getInstance().start();
+
+
 
     }
 

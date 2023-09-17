@@ -3,6 +3,9 @@ package com.xiaohe.mapper;
 import com.xiaohe.core.model.ScheduledTaskLog;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
+import java.util.List;
+
 /**
  * @author : 小何
  * @Description :
@@ -16,4 +19,6 @@ public interface ScheduledTaskLogMapper {
     public ScheduledTaskLog load(@Param("id") long id);
 
     public int updateHandleInfo(ScheduledTaskLog log);
+
+    public List<Long> findLostJobIds(@Param("losedTime") Date losedTime);
 }

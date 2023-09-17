@@ -66,12 +66,31 @@
 		t.trigger_last_time,
 		t.trigger_next_time
     </sql>
+    <update id="scheduleUpdate">
+        <foreach collection="jobList" separator=";" item="job">
+            update scheduled_task_info
+            set
+                `trigger_last_time` = #{job.triggerLastTime},
+                `trigger_next_time` = #{job.triggerNextTime},
+                `trigger_status` = #{job.triggerStatus}
+            where `id` = #{job.id}
+        </foreach>
 
+    </update>
 
 
     <select id="loadById" resultType="com.xiaohe.core.model.ScheduledTaskInfo">
         SELECT <include refid="Base_Column_List"></include>
         FROM scheduled_task_info AS t
         where t.id = #{jobId}
+    </select>
+
+    <select id="scheduleJobQuery" parameterType="java.util.Map" resultType="com.xiaohe.core.model.ScheduledTaskInfo">
+        select <include refid="Base_Column_List"></include>
+        from scheduled_task_info as t
+        where t.trigger_status = 1
+            and t.trigger_next_time <![CDATA[ <= ]]> #{maxNextTime}
+        order by id asc
+        limit #{pagesize}
     </select>
 </mapper>

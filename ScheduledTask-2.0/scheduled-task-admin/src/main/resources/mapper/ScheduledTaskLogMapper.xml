@@ -78,6 +78,16 @@
             FROM scheduled_task_log AS t
         WHERE `id` = #{id}
     </select>
+    <select id="findLostJobIds" resultType="java.lang.Long" resultMap="ScheduledTaskLog">
+        select t.id
+        from scheduled_task_log t
+            left join scheduled_task_registry t2
+            on t.executor_address = t2.registry_value
+        where t.trigger_code = 200
+            and t.handle_code = 0
+            and t.trigger_time <![CDATA[<=]]> #{losedTime}
+            and t2.id is null;
+    </select>
 
 
     <update id="updateHandleInfo">

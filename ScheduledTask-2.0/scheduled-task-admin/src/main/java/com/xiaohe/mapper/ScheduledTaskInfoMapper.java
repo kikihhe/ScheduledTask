@@ -4,6 +4,8 @@ import com.xiaohe.core.model.ScheduledTaskInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * @author : 小何
  * @Description :
@@ -13,5 +15,9 @@ import org.apache.ibatis.annotations.Param;
 public interface ScheduledTaskInfoMapper {
 
     public ScheduledTaskInfo loadById(@Param("jobId") int jobId);
+
+    public List<ScheduledTaskInfo> scheduleJobQuery(@Param("maxNextTime") long maxNextTime, @Param("pagesize") int pagesize);
+
+    public int scheduleUpdate(@Param("jobList") List<ScheduledTaskInfo> scheduledTaskInfo);
 
 }

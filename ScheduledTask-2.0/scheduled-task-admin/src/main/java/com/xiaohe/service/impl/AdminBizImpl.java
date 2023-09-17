@@ -5,7 +5,7 @@ import com.xiaohe.biz.model.HandleCallbackParam;
 import com.xiaohe.biz.model.RegistryParam;
 import com.xiaohe.biz.model.Result;
 import com.xiaohe.core.thread.JobCompleteHelper;
-import com.xiaohe.core.trigger.JobRegistryHelper;
+import com.xiaohe.core.thread.JobRegistryHelper;
 
 import java.util.List;
 
