@@ -11,6 +11,9 @@ public class ScheduledTaskLogReport {
 
     private int id;
 
+    /**
+     * 调度时间
+     */
     private Date triggerDay;
 
     /**

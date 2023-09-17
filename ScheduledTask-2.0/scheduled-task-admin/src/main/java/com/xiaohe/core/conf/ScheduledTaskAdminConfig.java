@@ -5,6 +5,7 @@ import com.xiaohe.mapper.*;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -68,6 +69,10 @@ public class ScheduledTaskAdminConfig implements InitializingBean, DisposableBea
     private DataSource dataSource;
 
     private TaskScheduler scheduler;
+
+    @Resource
+    private JavaMailSender mailSender;
+
 
 
 
@@ -151,5 +156,11 @@ public class ScheduledTaskAdminConfig implements InitializingBean, DisposableBea
         return scheduledTaskUserMapper;
     }
 
+    public JavaMailSender getMailSender() {
+        return mailSender;
+    }
 
+    public void setMailSender(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 }
