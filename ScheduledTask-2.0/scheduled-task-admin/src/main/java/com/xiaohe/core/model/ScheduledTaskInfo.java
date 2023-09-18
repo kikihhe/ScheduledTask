@@ -126,6 +126,8 @@ public class ScheduledTaskInfo {
      */
     private Date glueUpdatetime;
 
+    private String executorShardingParam;
+
     /**
      * 子任务id
      */
@@ -321,5 +323,13 @@ public class ScheduledTaskInfo {
 
     public void setChildJobId(String childJobId) {
         this.childJobId = childJobId;
+    }
+
+    public String getExecutorShardingParam() {
+        return executorShardingParam;
+    }
+
+    public void setExecutorShardingParam(String executorShardingParam) {
+        this.executorShardingParam = executorShardingParam;
     }
 }

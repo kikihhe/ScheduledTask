@@ -21,4 +21,10 @@ public interface ScheduledTaskLogMapper {
     public int updateHandleInfo(ScheduledTaskLog log);
 
     public List<Long> findLostJobIds(@Param("losedTime") Date losedTime);
+
+    public List<Long> findFailJobLogIds(@Param("pagesize") int pagesize);
+
+    public int updateAlarmStatus(@Param("logId")Long failLogId,
+                                 @Param("oldAlarmStatus") int oldAlarmStatus,
+                                 @Param("newAlarmStatus") int newAlarmStatus);
 }

@@ -1,5 +1,7 @@
 package com.xiaohe.core.conf;
 
+import com.xiaohe.core.alarm.JobAlarm;
+import com.xiaohe.core.alarm.JobAlarmer;
 import com.xiaohe.core.scheduler.TaskScheduler;
 import com.xiaohe.mapper.*;
 import org.springframework.beans.factory.DisposableBean;
@@ -73,7 +75,8 @@ public class ScheduledTaskAdminConfig implements InitializingBean, DisposableBea
     @Resource
     private JavaMailSender mailSender;
 
-
+    @Resource
+    private JobAlarmer jobAlarmer;
 
 
     /**
@@ -162,5 +165,13 @@ public class ScheduledTaskAdminConfig implements InitializingBean, DisposableBea
 
     public void setMailSender(JavaMailSender mailSender) {
         this.mailSender = mailSender;
+    }
+
+    public JobAlarmer getJobAlarmer() {
+        return jobAlarmer;
+    }
+
+    public void setJobAlarmer(JobAlarmer jobAlarmer) {
+        this.jobAlarmer = jobAlarmer;
     }
 }

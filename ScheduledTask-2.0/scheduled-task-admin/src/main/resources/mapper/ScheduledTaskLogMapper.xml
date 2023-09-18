@@ -88,6 +88,18 @@
             and t.trigger_time <![CDATA[<=]]> #{losedTime}
             and t2.id is null;
     </select>
+    <select id="findFailJobLogIds" resultType="java.lang.Long">
+        select id from `scheduled_task_log`
+        where
+            !(
+                (trigger_code in (0, 200) and handle_code = 0)
+               or
+                (handle_code = 200)
+            )
+        and `alarm_status` = 0
+        order by id asc
+        limit #{pagesize}
+    </select>
 
 
     <update id="updateHandleInfo">
@@ -97,5 +109,11 @@
             `handle_msg`  = #{handleMsg}
         where `id` = #{id}
 
+    </update>
+    <update id="updateAlarmStatus">
+        update scheduled_task_log
+        set
+            `alarm_status` = #{newAlarmStatus}
+        where `id` = #{logId} and `alarm_status` = #{oldAlarmStatus}
     </update>
 </mapper>

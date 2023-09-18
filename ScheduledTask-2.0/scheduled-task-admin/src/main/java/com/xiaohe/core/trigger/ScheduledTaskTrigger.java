@@ -44,6 +44,7 @@ public class ScheduledTaskTrigger {
         }
         ScheduledTaskGroup group = ScheduledTaskAdminConfig.getAdminConfig().getScheduledTaskGroupMapper().loadById(jobInfo.getJobGroup());
         // 如果用户在web界面制定了执行器IP，那就使用用户指定的
+        // 如果为空，可能是失败任务重试，让它使用原先已经注册好的
         if (addressList != null && !addressList.trim().isEmpty()) {
             // 执行器的注册方式改为手动注册
             group.setAddressType(1);

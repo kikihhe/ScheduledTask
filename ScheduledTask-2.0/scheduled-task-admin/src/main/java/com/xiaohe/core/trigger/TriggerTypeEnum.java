@@ -8,7 +8,8 @@ package com.xiaohe.core.trigger;
 public enum TriggerTypeEnum {
     MANUAL("jobconf_trigger_type_manual"),
     CRON("jobconf_trigger_type_cron"),
-    MISFIRE("jobconf_trigger_type_misfire")
+    MISFIRE("jobconf_trigger_type_misfire"),
+    RETRY("jobconf_trigger_type_retry")
     ;
 
     TriggerTypeEnum(String title) {
