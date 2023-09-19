@@ -28,4 +28,6 @@ public interface ExecutorBiz {
 
     public Result<String> log(LogParam logParam);
 
+    public Result<String> kill(TriggerParam triggerParam);
+
 }

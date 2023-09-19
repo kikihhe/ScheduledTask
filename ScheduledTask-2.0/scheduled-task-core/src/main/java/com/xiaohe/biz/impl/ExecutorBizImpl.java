@@ -5,6 +5,8 @@ import com.xiaohe.biz.model.IdleBeatParam;
 import com.xiaohe.biz.model.LogParam;
 import com.xiaohe.biz.model.Result;
 import com.xiaohe.biz.model.TriggerParam;
+import com.xiaohe.executor.ScheduledTaskExecutor;
+import com.xiaohe.thread.JobThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +20,6 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
     /**
      * 心跳检测方法，直接回复成功即可
-     * @return
      */
     @Override
     public Result<String> beat() {
@@ -27,8 +28,8 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
     /**
      * 忙碌检测，去看对应的线程是否在执行任务
+     *
      * @param idleBeatParam
-     * @return
      */
     @Override
     public Result<String> idleBeat(IdleBeatParam idleBeatParam) {
@@ -37,8 +38,8 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
     /**
      * 任务的调度
+     *
      * @param triggerParam
-     * @return
      */
     @Override
     public Result<String> run(TriggerParam triggerParam) {
@@ -47,11 +48,25 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
     /**
      * 调度中心查看对应执行器的日志
+     *
      * @param logParam
-     * @return
      */
     @Override
     public Result<String> log(LogParam logParam) {
         return null;
+    }
+
+    /**
+     * 执行器kill掉一个任务
+     *
+     * @param killParam
+     */
+    @Override
+    public Result<String> kill(TriggerParam killParam) {
+        JobThread jobThread = ScheduledTaskExecutor.loadJobThread(killParam.getJobId());
+        if (jobThread != null) {
+            ScheduledTaskExecutor.removeJobThread(killParam.getJobId(), "scheduling center kill job.");
+        }
+        return Result.SUCCESS;
     }
 }

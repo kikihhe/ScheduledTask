@@ -239,12 +239,12 @@ public class ScheduledTaskExecutor {
      *
      * @param id
      */
-    public JobThread loadJobThread(Integer id) {
+    public static JobThread loadJobThread(Integer id) {
         return jobThreadRepository.get(id);
     }
 
     /**
-     * 移除定时任务绑定的线程, 从Map中取出来之后调用它的 toStop方法停止
+     * 移除定时任务绑定的线程, 不仅从Map中移除，还终止线程的执行
      *
      * @param jobId
      * @param removeOldReason
