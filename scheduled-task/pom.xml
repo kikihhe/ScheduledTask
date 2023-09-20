@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.xiaohe</groupId>
+    <artifactId>scheduled-task</artifactId>
+    <version>3.0</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>scheduled-task-core</module>
+        <module>scheduled-task-admin</module>
+    </modules>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.test.skip>true</maven.test.skip>
+
+        <netty-all.version>4.1.63.Final</netty-all.version>
+        <gson.version>2.9.0</gson.version>
+
+        <spring.version>5.3.20</spring.version>
+        <spring-boot.version>2.6.7</spring-boot.version>
+
+        <mybatis-spring-boot-starter.version>2.2.2</mybatis-spring-boot-starter.version>
+        <mysql-connector-java.version>8.0.29</mysql-connector-java.version>
+
+        <slf4j-api.version>2.0.7</slf4j-api.version>
+        <junit-jupiter.version>5.8.2</junit-jupiter.version>
+        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+
+        <groovy.version>3.0.10</groovy.version>
+
+    </properties>
+</project>
