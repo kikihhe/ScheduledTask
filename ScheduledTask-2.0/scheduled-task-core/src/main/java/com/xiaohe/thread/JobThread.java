@@ -18,8 +18,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author : 小何
@@ -135,8 +134,33 @@ public class JobThread extends Thread {
                     // 记录日志
                     ScheduledTaskHelper.log("-----------job execute start-----------<br>----------- Param:"
                             + context.getJobParam());
-                    // 通过反射执行任务
-                    jobHandler.executor();
+                    // 如果没有设置超时时间，直接执行
+                    if (triggerParam.getExecutorTimeout() <= 0) {
+                        // 通过反射执行任务
+                        jobHandler.executor();
+                    } else {
+                        // 如果设置了超时时间，创建子线程执行
+                        Thread thread = null;
+                        FutureTask<Boolean> futureTask = new FutureTask<>(() -> {
+                            // 让子线程可以访问到context
+                            ScheduledTaskContext.setScheduledTaskContext(context);
+                            jobHandler.executor();
+                            return true;
+                        });
+                        try {
+                            thread = new Thread(futureTask);
+                            thread.start();
+                            futureTask.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
+                        } catch (TimeoutException e) {
+                            // 记录日志
+                            ScheduledTaskHelper.log("<br>--------- job execute timeout");
+                            ScheduledTaskHelper.log(e);
+                            ScheduledTaskHelper.handleTimeout("job execute timeout");
+                        } finally {
+                            // 不管有没有超时，都终止线程
+                            thread.interrupt();
+                        }
+                    }
 
                     // 从上下文中获取任务执行的结果
                     if (ScheduledTaskContext.getScheduledTaskContext().getHandleCode() <= 0) {
