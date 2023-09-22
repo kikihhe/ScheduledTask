@@ -1,10 +1,16 @@
 package com.xiaohe.admin.service;
 
+
 import com.xiaohe.admin.core.model.XxlJobUser;
+import com.xiaohe.admin.mapper.XxlJobUserMapper;
+import com.xiaohe.util.JsonUtil;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigInteger;
+
 
 /**
  * @author : 小何
@@ -18,6 +24,34 @@ public class LoginService {
      */
     public static final String LOGIN_IDENTITY_KEY = "XXL_JOB_LOGIN_IDENTITY";
 
+    @Resource
+    private XxlJobUserMapper xxlJobUserMapper;
+
+    /**
+     * 制作用户的token
+     * @param xxlJobUser
+     * @return
+     */
+    private String makeToken(XxlJobUser xxlJobUser) {
+        String tokenJson = JsonUtil.writeValueAsString(xxlJobUser);
+        String token = new BigInteger(tokenJson.getBytes()).toString(16);
+        return token;
+    }
+
+    /**
+     * 将token解析为XxlJobUser类
+     * @param token
+     * @return
+     */
+    private XxlJobUser parseToken(String token) {
+        XxlJobUser xxlJobUser = null;
+        if (token != null) {
+            String tokenJson = new String(new BigInteger(token, 16).toByteArray());
+            xxlJobUser = JsonUtil.readValue(tokenJson, XxlJobUser.class);
+        }
+        return xxlJobUser;
+    }
+
 
     /**
      * 判断用户是否已经登录
@@ -26,6 +60,10 @@ public class LoginService {
      * @return
      */
     public XxlJobUser ifLogin(HttpServletRequest request, HttpServletResponse response) {
+
+
         return null;
     }
+
+
 }
