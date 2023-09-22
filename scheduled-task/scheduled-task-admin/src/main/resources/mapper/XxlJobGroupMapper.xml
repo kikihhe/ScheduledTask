@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaohe.admin.mapper.XxlJobGroupMapper">
+
+    <resultMap id="XxlJobGroup" type="com.xiaohe.admin.core.model.XxlJobGroup">
+        <result property="id" column="id"/>
+        <result property="appname" column="app_name"/>
+        <result property="title" column="title"/>
+        <result property="addressType" column="address_type"/>
+        <result property="addressList" column="address_list"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+        t.appname,
+        t.title,
+        t.address_type,
+        t.address_list,
+        t.update_time
+    </sql>
+
+    <select id="findAll" resultType="com.xiaohe.admin.core.model.XxlJobGroup">
+        SELECT <include refid="Base_Column_List" />
+            FROM xxl_job_group AS t
+        ORDER BY t.app_name, t.title, t.id ASC
+    </select>
+</mapper>

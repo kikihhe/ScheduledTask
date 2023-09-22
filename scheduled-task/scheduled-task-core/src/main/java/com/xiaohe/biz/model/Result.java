@@ -18,7 +18,6 @@ public class Result<T> implements Serializable {
     public static final Result<String> FAIL = new Result<>(FAIL_CODE, null);
 
 
-
     private int code;
 
     private String message;
@@ -36,6 +35,26 @@ public class Result<T> implements Serializable {
     public Result(T content) {
         this.code = 200;
         this.content = content;
+    }
+
+    public Result(int code, String message, T content) {
+        this.code = code;
+        this.message = message;
+        this.content = content;
+    }
+
+    public static <T> Result<T> success(String message, T data) {
+        return new Result<>(Result.SUCCESS_CODE, message, data);
+    }
+    public static <T> Result<T> success(String message) {
+        return new Result<>(Result.SUCCESS_CODE, message);
+    }
+
+    public static <T> Result<T> error(String message, T data) {
+        return new Result<>(Result.FAIL_CODE, message, data);
+    }
+    public static <T> Result<T> error(String message) {
+        return new Result<>(Result.FAIL_CODE, message);
     }
 
     public int getCode() {

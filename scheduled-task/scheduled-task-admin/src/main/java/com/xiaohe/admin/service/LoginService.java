@@ -1,4 +1,4 @@
-package com.xiaohe.admin.controller.service;
+package com.xiaohe.admin.service;
 
 import com.xiaohe.admin.core.model.XxlJobUser;
 import org.springframework.stereotype.Service;

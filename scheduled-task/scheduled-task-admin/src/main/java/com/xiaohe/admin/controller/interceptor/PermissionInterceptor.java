@@ -1,7 +1,7 @@
 package com.xiaohe.admin.controller.interceptor;
 
 import com.xiaohe.admin.controller.annotation.PermissionLimit;
-import com.xiaohe.admin.controller.service.LoginService;
+import com.xiaohe.admin.service.LoginService;
 import com.xiaohe.admin.core.model.XxlJobUser;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
