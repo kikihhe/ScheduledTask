@@ -2,14 +2,19 @@ package com.xiaohe.admin.service;
 
 
 import com.xiaohe.admin.core.model.XxlJobUser;
+import com.xiaohe.admin.core.util.CookieUtil;
 import com.xiaohe.admin.mapper.XxlJobUserMapper;
+import com.xiaohe.biz.model.Result;
 import com.xiaohe.util.JsonUtil;
+import com.xiaohe.util.StringUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -29,8 +34,8 @@ public class LoginService {
 
     /**
      * 制作用户的token
+     *
      * @param xxlJobUser
-     * @return
      */
     private String makeToken(XxlJobUser xxlJobUser) {
         String tokenJson = JsonUtil.writeValueAsString(xxlJobUser);
@@ -40,8 +45,8 @@ public class LoginService {
 
     /**
      * 将token解析为XxlJobUser类
+     *
      * @param token
-     * @return
      */
     private XxlJobUser parseToken(String token) {
         XxlJobUser xxlJobUser = null;
@@ -55,14 +60,73 @@ public class LoginService {
 
     /**
      * 判断用户是否已经登录
+     *
+     * @param request
+     * @param response
+     */
+    public XxlJobUser ifLogin(HttpServletRequest request, HttpServletResponse response) {
+        String cookieToken = CookieUtil.getCookie(request, LOGIN_IDENTITY_KEY);
+        if (cookieToken == null) {
+            return null;
+        }
+        XxlJobUser user = null;
+        try {
+            user = parseToken(cookieToken);
+        } catch (Exception e) {
+            // 如果解析token的过程中出现任何异常，直接使当前用户退出登录
+            logout(request, response);
+        }
+        if (user == null) {
+            return null;
+        }
+
+        XxlJobUser dbUser = xxlJobUserMapper.loadByUsername(user.getUsername());
+        if (dbUser == null || !dbUser.equals(user)) {
+            return null;
+        }
+        return dbUser;
+    }
+
+    /**
+     * 退出登录
      * @param request
      * @param response
      * @return
      */
-    public XxlJobUser ifLogin(HttpServletRequest request, HttpServletResponse response) {
+    public Result<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        CookieUtil.remove(request, response, LOGIN_IDENTITY_KEY);
+        return Result.success();
+    }
 
-
-        return null;
+    /**
+     * 登录
+     * @param request
+     * @param response
+     * @param username
+     * @param password
+     * @param ifRemember
+     * @return
+     */
+    public Result login(HttpServletRequest request, HttpServletResponse response,
+                                String username, String password, boolean ifRemember) {
+        if (!StringUtil.hasText(username) || username.trim().length() < 4 || username.trim().length() > 20) {
+            return Result.error("用户名不符合格式");
+        }
+        if (!StringUtil.hasText(password) || password.trim().length() < 4 || password.trim().length() > 20) {
+            return Result.error("密码不符合格式");
+        }
+        XxlJobUser xxlJobUser = xxlJobUserMapper.loadByUsername(username);
+        if (xxlJobUser == null) {
+            return Result.error("用户名/密码错误", new XxlJobUser().setUsername(username).setPassword(password));
+        }
+        String passwordMd5 = DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
+        if (!passwordMd5.equals(xxlJobUser.getPassword())) {
+            return Result.error("用户名/密码错误", new XxlJobUser().setUsername(username).setPassword(password));
+        }
+        // 如果登录成功，生成token，存入response返回给前端
+        String token = makeToken(xxlJobUser);
+        CookieUtil.set(response, LOGIN_IDENTITY_KEY, token, ifRemember);
+        return Result.success();
     }
 
 

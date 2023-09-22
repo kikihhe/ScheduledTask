@@ -2,6 +2,8 @@ package com.xiaohe.admin.core.model;
 
 import com.xiaohe.util.StringUtil;
 
+import java.util.Objects;
+
 /**
  * @author : 小何
  * @Description : 用户
@@ -66,16 +68,18 @@ public class XxlJobUser {
         return username;
     }
 
-    public void setUsername(String username) {
+    public XxlJobUser setUsername(String username) {
         this.username = username;
+        return this;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public XxlJobUser setPassword(String password) {
         this.password = password;
+        return this;
     }
 
     public int getRole() {
@@ -103,5 +107,18 @@ public class XxlJobUser {
                 ", role=" + role +
                 ", permission='" + permission + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        XxlJobUser that = (XxlJobUser) o;
+        return id == that.id && role == that.role && Objects.equals(username, that.username) && Objects.equals(password, that.password) && Objects.equals(permission, that.permission);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, password, role, permission);
     }
 }
