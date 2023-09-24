@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaohe.admin.mapper.XxlJobLogMapper">
+
+    <resultMap id="XxlJobLog" type="com.xiaohe.admin.core.model.XxlJobLog">
+        <result column="id" property="id"/>
+
+        <result column="job_group" property="jobGroup"/>
+        <result column="job_id" property="jobId"/>
+
+        <result column="executor_address" property="executorAddress"/>
+        <result column="executor_handler" property="executorHandler"/>
+        <result column="executor_param" property="executorParam"/>
+        <result column="executor_sharding_param" property="executorShardingParam"/>
+        <result column="executor_fail_retry_count" property="executorFailRetryCount"/>
+
+        <result column="trigger_time" property="triggerTime"/>
+        <result column="trigger_code" property="triggerCode"/>
+        <result column="trigger_msg" property="triggerMsg"/>
+
+        <result column="handle_time" property="handleTime"/>
+        <result column="handle_code" property="handlerCode"/>
+        <result column="handle_msg" property="handleMsg"/>
+
+        <result column="alarm_status" property="alarmStatus"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t
+        .
+        id
+        ,
+		t.job_group,
+		t.job_id,
+		t.executor_address,
+		t.executor_handler,
+		t.executor_param,
+		t.executor_sharding_param,
+		t.executor_fail_retry_count,
+		t.trigger_time,
+		t.trigger_code,
+		t.trigger_msg,
+		t.handle_time,
+		t.handle_code,
+		t.handle_msg,
+		t.alarm_status
+    </sql>
+
+
+    <select id="pageList" parameterType="java.util.Map" resultType="com.xiaohe.admin.core.model.XxlJobLog">
+        select
+        <include refid="Base_Column_List"/>
+        from xxl_job_log t
+        <where>
+            <if test="jobId == 0 and jobGroup gt 0">
+                and t.job_group = #{jobGroup}
+            </if>
+            <if test="jobId gt 0">
+                and t.job_id = #{jobId}
+            </if>
+            <if test="triggerTimeStart != null">
+                and t.trigger_time <![CDATA[ >= ]]> #{triggerTimeStart}
+            </if>
+            <if test="triggerTimeEnd != null">
+                and t.trigger_time <![CDATA[ <= ]]> #{triggerTimeEnd}
+            </if>
+
+            <!--    logStatus == 1, 代表想要查询 调度成功并且执行成功的-->
+
+            <if test="logStatus == 1">
+                and t.handle_code = 200
+            </if>
+
+            <!--    logStatus == 2, 代表想要查询 调度失败或者执行失败的任务-->
+            <if test="logStatus == 2">
+                and (
+                t.trigger_code not in (0, 200) or
+                t.handle_code not in(0, 200)
+                )
+            </if>
+
+            <!--    logStatus == 3, 代表想要查询 调度成功，还未执行完的任务-->
+            <if test="logStatus == 3">
+                and t.trigger_code = 200
+                and t.handle_code = 0
+            </if>
+        </where>
+        order by t.trigger_time desc
+        limit #{start}, #{size}
+    </select>
+    <select id="loadById" resultType="com.xiaohe.admin.core.model.XxlJobLog">
+        select
+        <include refid="Base_Column_List"/>
+        from xxl_job_log t
+        where t.`id` = #{logId}
+    </select>
+
+
+    <select id="findClearJobLog" resultType="java.lang.Long">
+        select t.id
+        from xxl_job_log as
+        <where>
+            <if test="jobGroup != null">
+                and `jobGroup` = #{jobGroup}
+            </if>
+            <if test="jobId > 0">
+                and `jobId` = #{jobId}
+            </if>
+            <if test="clearBeforeTime != null">
+                and `trigger_time` <![CDATA[ <= ]]> #{clearBeforeTime}
+            </if>
+            <!--    假如clearBeforeNum的值为1000，那就要保留1000个，只需要查出与jobId、jobGroup相同且按照trigger_time排序后的1000个的id，查出来并删掉不在这里面的其他id就行了-->
+            <if test="clearBeforeNum gt 0">
+                and id not in (
+                select id from (
+                select id from xxl_job_log as t
+                <where>
+                    <if test="jobGroup gt 0">
+                        and t.job_group = #{jobGroup}
+                    </if>
+                    <if test="jobId gt 0">
+                        and t.job_id = #{jobId}
+                    </if>
+                </where>
+                order by t.trigger_time desc
+                limit 0, #{clearBeforeNum}
+                ) t1
+                )
+            </if>
+
+        </where>
+        order by id asc
+        limit #{size}
+    </select>
+
+    <delete id="clearLogs">
+        delete from xxl_job_log
+        where id in
+        <foreach collection="logIds" item="id" separator="," open="(" close=")" >
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

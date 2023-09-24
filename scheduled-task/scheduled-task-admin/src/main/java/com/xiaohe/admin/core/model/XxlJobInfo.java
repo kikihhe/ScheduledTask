@@ -27,6 +27,11 @@ public class XxlJobInfo {
      * 任务添加时间
      */
     private Date addTime;
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
 
     /**
      * 任务负责人
@@ -53,6 +58,7 @@ public class XxlJobInfo {
      * 当执行器宕机，或者任务执行失败导致定时任务的执行时间没有刷新，导致超过5s的调度周期时就需要使用失败策略
      */
     private String misfireStrategy;
+
 
     /**
      * 路由策略
@@ -306,7 +312,16 @@ public class XxlJobInfo {
         return triggerNextTime;
     }
 
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
     public void setTriggerNextTime(long triggerNextTime) {
+
         this.triggerNextTime = triggerNextTime;
     }
 }

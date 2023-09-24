@@ -30,7 +30,7 @@ public class XxlJobUser {
     private int role;
 
     /**
-     * 用户对应的权限
+     * 用户对应的权限,即该用户可操作的执行器组的id，以逗号隔开
      */
     private String permission;
 

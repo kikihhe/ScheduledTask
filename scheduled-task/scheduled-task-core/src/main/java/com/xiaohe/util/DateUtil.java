@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -105,6 +106,32 @@ public class DateUtil {
             logger.error("parse date error, dateString = {}, pattern = {}, errorMessage = {}", dateString, pattern, e.getMessage());
             return null;
         }
+    }
+
+    public static Date addYears(final Date date, final int amount) {
+        return add(date, Calendar.YEAR, amount);
+    }
+
+    public static Date addMonths(final Date date, final int amount) {
+        return add(date, Calendar.MONTH, amount);
+    }
+
+    public static Date addDays(final Date date, final int amount) {
+        return add(date, Calendar.DAY_OF_MONTH, amount);
+    }
+
+    public static Date addMinutes(final Date date, final int amount) {
+        return add(date, Calendar.MINUTE, amount);
+    }
+
+    private static Date add(final Date date, final int calendarField, final int amount) {
+        if (date == null) {
+            return null;
+        }
+        final Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(calendarField, amount);
+        return c.getTime();
     }
 
 }
