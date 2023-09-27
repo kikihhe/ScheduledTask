@@ -53,4 +53,5 @@ public interface XxlJobLogMapper {
     public int clearLogs(@Param("logIds") List<Long> logIds);
 
 
+    void delete(@Param("id") Integer id);
 }

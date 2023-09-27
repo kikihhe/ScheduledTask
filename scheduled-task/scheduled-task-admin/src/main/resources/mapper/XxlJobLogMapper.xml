@@ -142,5 +142,9 @@
             #{id}
         </foreach>
     </delete>
+    <delete id="delete">
+        delete from xxl_job_log
+        where job_id = #{id}
+    </delete>
 
 </mapper>

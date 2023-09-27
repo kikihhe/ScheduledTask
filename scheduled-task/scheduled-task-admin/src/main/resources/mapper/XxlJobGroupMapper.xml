@@ -27,4 +27,11 @@
             FROM xxl_job_group AS t
         ORDER BY t.app_name, t.title, t.id ASC
     </select>
+
+<!--    根据id查询执行器组-->
+    <select id="load" resultType="com.xiaohe.admin.core.model.XxlJobGroup">
+        select <include refid="Base_Column_List"/>
+        from xxl_job_group as t
+        where t.`id` = #{jobGroup}
+    </select>
 </mapper>

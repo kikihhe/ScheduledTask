@@ -2,6 +2,7 @@ package com.xiaohe.admin.mapper;
 
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -18,4 +19,6 @@ public interface XxlJobGroupMapper {
      * @return
      */
     public List<XxlJobGroup> findAll();
+
+    public XxlJobGroup load(@Param("jobGroup") int jobGroup);
 }

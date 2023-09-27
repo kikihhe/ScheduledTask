@@ -64,7 +64,7 @@
 		t.trigger_next_time
     </sql>
 
-<!--    根据id查找对应任务-->
+    <!--    根据id查找对应任务-->
     <select id="loadById" resultType="com.xiaohe.admin.core.model.XxlJobInfo">
         select <include refid="Base_Column_List"/>
             from xxl_job_info as t
@@ -78,5 +78,87 @@
         where t.`job_group` = #{jobGroup}
     </select>
 
+<!--    分页查询定时任务的详细信息-->
+    <select id="pageList" resultType="com.xiaohe.admin.core.model.XxlJobInfo">
+        select
+        <include refid="Base_Column_List"/>
+        from xxl_job_info t
+        <where>
+            <if test="jobGroup gt 0">
+                and t.`job_group` = #{jobGroup}
+            </if>
+            <if test="triggerStatus gte 0">
+                and t.`triggerStatus` = #{triggerStatus}
+            </if>
+            <if test="jobDesc != null and jobDesc != ''">
+                and t.`job_desc` like concat('%', #{jobDesc}, '%')
+            </if>
+            <if test="executorHandler != null and executorHandler != ''">
+                and t.`executor_handler` like concat('%', #{executorHandler}, '%')
+            </if>
+            <if test="author != null and author != ''">
+                and t.`author` like concat('%', #{author}, '%')
+            </if>
+        </where>
+        order by id desc
+        limit #{start} , #{length}
+    </select>
 
+<!--    添加任务-->
+    <insert id="save" parameterType="com.xiaohe.admin.core.model.XxlJobInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO xxl_job_info (
+            job_group,
+            job_desc,
+            add_time,
+            update_time,
+            author,
+            alarm_email,
+            schedule_type,
+            schedule_conf,
+            misfire_strategy,
+            executor_route_strategy,
+            executor_handler,
+            executor_param,
+            executor_block_strategy,
+            executor_timeout,
+            executor_fail_retry_count,
+            glue_type,
+            glue_source,
+            glue_remark,
+            glue_updatetime,
+            child_jobid,
+            trigger_status,
+            trigger_last_time,
+            trigger_next_time
+        ) VALUES (
+                     #{jobGroup},
+                     #{jobDesc},
+                     #{addTime},
+                     #{updateTime},
+                     #{author},
+                     #{alarmEmail},
+                     #{scheduleType},
+                     #{scheduleConf},
+                     #{misfireStrategy},
+                     #{executorRouteStrategy},
+                     #{executorHandler},
+                     #{executorParam},
+                     #{executorBlockStrategy},
+                     #{executorTimeout},
+                     #{executorFailRetryCount},
+                     #{glueType},
+                     #{glueSource},
+                     #{glueRemark},
+                     #{glueUpdatetime},
+                     #{childJobId},
+                     #{triggerStatus},
+                     #{triggerLastTime},
+                     #{triggerNextTime}
+                 );
+    </insert>
+
+    <delete id="delete">
+        delete from xxl_job_info
+        where id = #{id}
+    </delete>
 </mapper>

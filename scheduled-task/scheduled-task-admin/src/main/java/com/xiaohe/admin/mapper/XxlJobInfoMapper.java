@@ -16,4 +16,16 @@ public interface XxlJobInfoMapper {
     public XxlJobInfo loadById(@Param("jobId") Integer jobId);
 
     public List<XxlJobInfo> getJobsByJobGroup(@Param("jobGroup") Integer jobGroup);
+
+    public List<XxlJobInfo> pageList(@Param("start") int start,
+                                     @Param("length") int length,
+                                     @Param("jobGroup") int jobGroup,
+                                     @Param("triggerStatus") int triggerStatus,
+                                     @Param("jobDesc") String jobDesc,
+                                     @Param("executorHandler") String executorHandler,
+                                     @Param("author") String author);
+
+    public int save(XxlJobInfo jobInfo);
+
+    void delete(@Param("id") Integer id);
 }
