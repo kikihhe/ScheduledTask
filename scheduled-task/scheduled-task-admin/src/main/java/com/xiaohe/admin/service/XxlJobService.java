@@ -1,8 +1,7 @@
 package com.xiaohe.admin.service;
 
 import com.xiaohe.admin.core.model.XxlJobInfo;
-import com.xiaohe.biz.model.Result;
-import org.springframework.stereotype.Component;
+import com.xiaohe.core.model.Result;
 
 import java.util.Map;
 

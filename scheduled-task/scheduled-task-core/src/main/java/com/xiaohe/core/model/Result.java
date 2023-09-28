@@ -1,4 +1,4 @@
-package com.xiaohe.biz.model;
+package com.xiaohe.core.model;
 
 import java.io.Serializable;
 

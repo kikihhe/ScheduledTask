@@ -1,6 +1,6 @@
-package com.xiaohe.util;
+package com.xiaohe.core.util;
 
-import com.xiaohe.biz.model.Result;
+import com.xiaohe.core.model.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,13 +10,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.sql.Connection;
 
 /**
  * @author : 小何

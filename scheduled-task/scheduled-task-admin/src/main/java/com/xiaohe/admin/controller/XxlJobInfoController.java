@@ -6,8 +6,8 @@ import com.xiaohe.admin.core.model.XxlJobUser;
 import com.xiaohe.admin.mapper.XxlJobGroupMapper;
 import com.xiaohe.admin.service.LoginService;
 import com.xiaohe.admin.service.XxlJobService;
-import com.xiaohe.biz.model.Result;
-import com.xiaohe.util.CollectionUtil;
+import com.xiaohe.core.model.Result;
+import com.xiaohe.core.util.CollectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author : 小何

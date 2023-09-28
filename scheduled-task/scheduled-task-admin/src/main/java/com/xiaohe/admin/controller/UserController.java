@@ -6,8 +6,8 @@ import com.xiaohe.admin.core.model.XxlJobUser;
 import com.xiaohe.admin.mapper.XxlJobGroupMapper;
 import com.xiaohe.admin.mapper.XxlJobUserMapper;
 import com.xiaohe.admin.service.LoginService;
-import com.xiaohe.biz.model.Result;
-import com.xiaohe.util.StringUtil;
+import com.xiaohe.core.model.Result;
+import com.xiaohe.core.util.StringUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.DigestUtils;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;

@@ -1,7 +1,6 @@
 package com.xiaohe.admin.core.model;
 
-import com.xiaohe.util.CollectionUtil;
-import com.xiaohe.util.StringUtil;
+import com.xiaohe.core.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

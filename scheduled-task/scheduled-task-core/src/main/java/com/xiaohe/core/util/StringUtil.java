@@ -1,4 +1,4 @@
-package com.xiaohe.util;
+package com.xiaohe.core.util;
 
 /**
  * @author : 小何

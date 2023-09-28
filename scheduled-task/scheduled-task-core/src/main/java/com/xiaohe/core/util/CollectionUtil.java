@@ -1,4 +1,4 @@
-package com.xiaohe.util;
+package com.xiaohe.core.util;
 
 import java.util.Collection;
 import java.util.Map;

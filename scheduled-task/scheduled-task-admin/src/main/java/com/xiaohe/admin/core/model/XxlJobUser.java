@@ -1,6 +1,6 @@
 package com.xiaohe.admin.core.model;
 
-import com.xiaohe.util.StringUtil;
+import com.xiaohe.core.util.StringUtil;
 
 import java.util.Objects;
 

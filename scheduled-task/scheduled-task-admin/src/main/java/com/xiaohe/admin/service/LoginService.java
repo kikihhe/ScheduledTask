@@ -4,9 +4,9 @@ package com.xiaohe.admin.service;
 import com.xiaohe.admin.core.model.XxlJobUser;
 import com.xiaohe.admin.core.util.CookieUtil;
 import com.xiaohe.admin.mapper.XxlJobUserMapper;
-import com.xiaohe.biz.model.Result;
-import com.xiaohe.util.JsonUtil;
-import com.xiaohe.util.StringUtil;
+import com.xiaohe.core.model.Result;
+import com.xiaohe.core.util.JsonUtil;
+import com.xiaohe.core.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 

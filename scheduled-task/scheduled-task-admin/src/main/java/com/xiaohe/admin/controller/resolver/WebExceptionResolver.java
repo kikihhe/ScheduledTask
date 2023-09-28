@@ -1,7 +1,7 @@
 package com.xiaohe.admin.controller.resolver;
 
-import com.xiaohe.biz.model.Result;
-import com.xiaohe.util.JsonUtil;
+import com.xiaohe.core.model.Result;
+import com.xiaohe.core.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;

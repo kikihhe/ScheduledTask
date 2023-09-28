@@ -9,10 +9,9 @@ import com.xiaohe.admin.mapper.XxlJobInfoMapper;
 import com.xiaohe.admin.mapper.XxlJobLogGlueMapper;
 import com.xiaohe.admin.mapper.XxlJobLogMapper;
 import com.xiaohe.admin.service.XxlJobService;
-import com.xiaohe.biz.model.Result;
-import com.xiaohe.util.StringUtil;
+import com.xiaohe.core.model.Result;
+import com.xiaohe.core.util.StringUtil;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import java.util.Date;

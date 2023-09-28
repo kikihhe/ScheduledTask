@@ -1,4 +1,4 @@
-package com.xiaohe.util;
+package com.xiaohe.core.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
