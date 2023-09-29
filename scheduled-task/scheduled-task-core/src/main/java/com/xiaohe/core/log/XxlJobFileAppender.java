@@ -102,9 +102,9 @@ public class XxlJobFileAppender {
 
     /**
      * 将指定日志文件中的内容读出
+     *
      * @param fileName
      * @param fromLineNum
-     * @return
      */
     public static LogResult readLog(String fileName, int fromLineNum) {
         // 读取失败的逻辑
@@ -141,14 +141,6 @@ public class XxlJobFileAppender {
         LogResult logResult = new LogResult(fromLineNum, toLineNum, logContentBuffer.toString(), false);
         return logResult;
     }
-
-
-
-
-
-
-
-
 
 
     private static void write(File file, String content) {
