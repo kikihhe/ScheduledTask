@@ -155,7 +155,8 @@ public class XxlJobFileAppender {
         FileOutputStream fos = null;
         BufferedOutputStream bos = null;
         try {
-            fos = new FileOutputStream(file);
+            // 续写
+            fos = new FileOutputStream(file, true);
             bos = new BufferedOutputStream(fos);
             bos.write(content.getBytes(StandardCharsets.UTF_8));
             bos.flush();
