@@ -1,8 +1,15 @@
 package com.xiaohe.core.executor;
 
+import com.xiaohe.core.biz.AdminBiz;
+import com.xiaohe.core.biz.client.AdminBizClient;
 import com.xiaohe.core.log.XxlJobFileAppender;
+import com.xiaohe.core.thread.JobLogFileCleanThread;
+import com.xiaohe.core.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author : 小何
@@ -48,6 +55,7 @@ public class XxlJobExecutor {
      */
     private int logRetentionDays;
 
+
     /**
      * 执行器的启动方法
      * @throws Exception
@@ -56,12 +64,49 @@ public class XxlJobExecutor {
         // 指定日志文件的存放位置
         XxlJobFileAppender.initLogPath(logPath);
 
+        // 初始化执行器给调度中心发送消息的组件
+        initAdminBizList(adminAddresses, accessToken);
+
+        // 定时清理过期日志，一天一次
+        JobLogFileCleanThread.getInstance().start(logRetentionDays);
+
+    }
+
+
+    // ------------------------------------------------------------------------------------------
+    /**
+     * 执行器给调度中心发送消息的组件
+     */
+    private static List<AdminBiz> adminBizList;
+
+
+
+
+    /**
+     * 初始化执行器给调度中心发送消息的组件
+     * @param adminAddresses
+     * @param accessToken
+     */
+    public void initAdminBizList(String adminAddresses, String accessToken) {
+        if (!StringUtil.hasText(adminAddresses)) {
+            return;
+        }
+        for (String address : adminAddresses.split(",")) {
+            if (!StringUtil.hasText(address)) {
+                continue;
+            }
+            AdminBizClient adminBiz = new AdminBizClient(address, accessToken);
+            if (adminBizList == null) {
+                adminBizList = new ArrayList<>();
+            }
+            adminBizList.add(adminBiz);
+        }
     }
 
 
 
 
-    // ----------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------
     // 这些setter都是用户在config中配置的，毕竟用户需要指定日志文件放在哪里。
     public void setAdminAddresses(String adminAddresses) {
         this.adminAddresses = adminAddresses;
