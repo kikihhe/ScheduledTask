@@ -29,4 +29,36 @@ public class HandlerCallbackParam implements Serializable {
      * 执行信息
      */
     private String handleMsg;
+
+    public long getLogId() {
+        return logId;
+    }
+
+    public void setLogId(long logId) {
+        this.logId = logId;
+    }
+
+    public long getLogDateTim() {
+        return logDateTim;
+    }
+
+    public void setLogDateTim(long logDateTim) {
+        this.logDateTim = logDateTim;
+    }
+
+    public int getHandleCode() {
+        return handleCode;
+    }
+
+    public void setHandleCode(int handleCode) {
+        this.handleCode = handleCode;
+    }
+
+    public String getHandleMsg() {
+        return handleMsg;
+    }
+
+    public void setHandleMsg(String handleMsg) {
+        this.handleMsg = handleMsg;
+    }
 }

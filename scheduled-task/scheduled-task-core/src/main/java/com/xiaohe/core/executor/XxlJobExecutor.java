@@ -135,4 +135,12 @@ public class XxlJobExecutor {
     public void setLogRetentionDays(int logRetentionDays) {
         this.logRetentionDays = logRetentionDays;
     }
+
+    public static List<AdminBiz> getAdminBizList() {
+        return adminBizList;
+    }
+
+    public static void setAdminBizList(List<AdminBiz> adminBizList) {
+        XxlJobExecutor.adminBizList = adminBizList;
+    }
 }

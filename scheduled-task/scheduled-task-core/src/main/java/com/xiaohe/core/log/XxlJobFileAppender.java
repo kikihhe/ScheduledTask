@@ -52,7 +52,7 @@ public class XxlJobFileAppender {
     }
 
     /**
-     * 根据任务的触发时间和任务id创建日志文件，触发时间为文件夹路径，任务id为日志文件名      <br></br>
+     * 根据任务的触发时间和任务id创建日志文件，触发时间为文件夹路径，日志id为日志文件名      <br></br>
      * 如 /2023-03-01/1.log
      * (如果日志文件夹不存在就创建，但不创建日志文件，只获得名称)
      *
@@ -193,4 +193,5 @@ public class XxlJobFileAppender {
     public static void setGlueSrcPath(String glueSrcPath) {
         XxlJobFileAppender.glueSrcPath = glueSrcPath;
     }
+
 }
