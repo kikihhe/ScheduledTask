@@ -290,4 +290,26 @@ public class TriggerCallbackThread {
             doCallback(callbackParamList);
         }
     }
+
+
+    public void toStop() {
+        toStop = true;
+        if (triggerCallbackThread != null) {
+            triggerCallbackThread.interrupt();
+            try {
+                triggerCallbackThread.join();
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+            }
+        }
+
+        if (triggerRetryCallbackThread != null) {
+            triggerRetryCallbackThread.interrupt();
+            try {
+                triggerRetryCallbackThread.join();
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+            }
+        }
+    }
 }

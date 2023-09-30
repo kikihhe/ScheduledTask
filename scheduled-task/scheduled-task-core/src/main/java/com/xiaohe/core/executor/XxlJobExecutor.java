@@ -4,6 +4,7 @@ import com.xiaohe.core.biz.AdminBiz;
 import com.xiaohe.core.biz.client.AdminBizClient;
 import com.xiaohe.core.log.XxlJobFileAppender;
 import com.xiaohe.core.thread.JobLogFileCleanThread;
+import com.xiaohe.core.thread.TriggerCallbackThread;
 import com.xiaohe.core.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,9 @@ public class XxlJobExecutor {
 
         // 定时清理过期日志，一天一次
         JobLogFileCleanThread.getInstance().start(logRetentionDays);
+
+        // 启动回调执行结果给调度中心的组件
+        TriggerCallbackThread.getInstance().start();
 
     }
 
