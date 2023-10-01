@@ -46,9 +46,14 @@ public class XxlJobExecutor {
     private String appname;
 
     /**
-     * 执行器的IP地址
+     * 执行器的IP+PORT
      */
     private String address;
+
+    /**
+     * ip
+     */
+    private String ip;
 
     /**
      * 执行器端口
@@ -81,6 +86,9 @@ public class XxlJobExecutor {
 
         // 启动回调执行结果给调度中心的组件
         TriggerCallbackThread.getInstance().start();
+
+        // 启动执行器的服务端
+        initEmbedServer(address, ip, port, appname, accessToken);
 
     }
 
@@ -289,4 +297,9 @@ public class XxlJobExecutor {
     public static void setAdminBizList(List<AdminBiz> adminBizList) {
         XxlJobExecutor.adminBizList = adminBizList;
     }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
 }
