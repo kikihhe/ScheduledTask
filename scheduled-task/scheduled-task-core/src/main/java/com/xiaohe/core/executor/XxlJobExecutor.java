@@ -2,15 +2,21 @@ package com.xiaohe.core.executor;
 
 import com.xiaohe.core.biz.AdminBiz;
 import com.xiaohe.core.biz.client.AdminBizClient;
+import com.xiaohe.core.handler.IJobHandler;
+import com.xiaohe.core.handler.annotation.XxlJob;
+import com.xiaohe.core.handler.impl.MethodJobHandler;
 import com.xiaohe.core.log.XxlJobFileAppender;
 import com.xiaohe.core.thread.JobLogFileCleanThread;
+import com.xiaohe.core.thread.JobThread;
 import com.xiaohe.core.thread.TriggerCallbackThread;
 import com.xiaohe.core.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author : 小何
@@ -59,7 +65,6 @@ public class XxlJobExecutor {
 
     /**
      * 执行器的启动方法
-     * @throws Exception
      */
     public void start() throws Exception {
         // 指定日志文件的存放位置
@@ -77,17 +82,16 @@ public class XxlJobExecutor {
     }
 
 
-    // ------------------------------------------------------------------------------------------
+    // --------------------------------调度中心客户端-----------------------------------------------------
     /**
      * 执行器给调度中心发送消息的组件
      */
     private static List<AdminBiz> adminBizList;
 
 
-
-
     /**
      * 初始化执行器给调度中心发送消息的组件
+     *
      * @param adminAddresses
      * @param accessToken
      */
@@ -107,7 +111,123 @@ public class XxlJobExecutor {
         }
     }
 
+    // --------------------------------JobThread-----------------------------------------------------
 
+    /**
+     * 存放 JobThread线程 的Map
+     */
+    private static ConcurrentHashMap<Integer, JobThread> jobThreadRepository = new ConcurrentHashMap<>();
+
+    /**
+     * 根据任务id获取对应线程
+     *
+     * @param jobId
+     */
+    public static JobThread loadJobThread(int jobId) {
+        return jobThreadRepository.get(jobId);
+    }
+
+    /**
+     * 注册新任务
+     *
+     * @param jobId
+     * @param handler
+     * @param removeOldReason
+     */
+    public static JobThread registJobThread(int jobId, IJobHandler handler, String removeOldReason) {
+        JobThread newJobThread = new JobThread(jobId, handler);
+        newJobThread.start();
+        logger.info(">>>>>>>>>> xxl-job regist JobThread success, jobId:{}, handler:{}", jobId, handler);
+        JobThread oldJobThread = jobThreadRepository.put(jobId, newJobThread);
+        // 如果任务之前注册过，可能是web端更改了任务。将旧线程停止。
+        if (oldJobThread != null) {
+            oldJobThread.toStop(removeOldReason);
+            oldJobThread.interrupt();
+        }
+        return newJobThread;
+    }
+
+    /**
+     * 销毁线程
+     *
+     * @param jobId
+     * @param removeReason
+     */
+    public static JobThread removeJobThread(int jobId, String removeReason) {
+        JobThread oldJobThread = jobThreadRepository.remove(jobId);
+        if (oldJobThread != null) {
+            oldJobThread.toStop(removeReason);
+            oldJobThread.interrupt();
+        }
+        return oldJobThread;
+    }
+
+    // --------------------------------JobHandler-----------------------------------------------------
+    /**
+     * 存放定时任务的map
+     * key: 定时任务名称
+     * value: 封装的class method
+     */
+    private static ConcurrentHashMap<String, IJobHandler> jobHandlerRepository = new ConcurrentHashMap<>();
+
+    public static IJobHandler loadJobHandler(String name) {
+        return jobHandlerRepository.get(name);
+    }
+
+    /**
+     * 注册
+     *
+     * @param name
+     * @param jobHandler
+     */
+    public static IJobHandler registJobHandler(String name, IJobHandler jobHandler) {
+        logger.info(">>>>>>>>>>>>>>>> xxl-job register jobHandler success, name:{}, jobHandler:{}", name, jobHandler);
+        return jobHandlerRepository.put(name, jobHandler);
+    }
+
+    /**
+     * 供子类调用的注册方法
+     *
+     * @param xxlJob
+     * @param bean
+     * @param method
+     */
+    protected void registJobHandler(XxlJob xxlJob, Object bean, Method method) throws NoSuchMethodException {
+        if (xxlJob == null) {
+            return;
+        }
+        // 获取任务名称、class、method
+        String name = xxlJob.value();
+        Class<?> clazz = bean.getClass();
+        String methodName = method.getName();
+        if (!StringUtil.hasText(name)) {
+            throw new RuntimeException("xxl-job method-jobhandler name invalid, for[" + clazz + "#" + methodName + "].");
+        }
+        // 如果已经注册过
+        if (loadJobHandler(name) != null) {
+            throw new RuntimeException("xxl-job method-jobhandler[" + name + "] naming conflicts");
+        }
+        method.setAccessible(true);
+        // 拿到初始化方法和销毁方法
+        Method initMethod = null;
+        Method destroyMethod = null;
+        getInitAndDestroy(initMethod, destroyMethod, xxlJob, clazz);
+        // 得到所有后注册入Map
+        registJobHandler(name, new MethodJobHandler(bean, method, initMethod, destroyMethod));
+    }
+
+    private void getInitAndDestroy(Method initMethod, Method destoryMethod, XxlJob xxlJob, Class clazz) throws NoSuchMethodException {
+        String init = xxlJob.initMethod();
+        String destroy = xxlJob.destroyMethod();
+        if (StringUtil.hasText(init)) {
+            initMethod = clazz.getDeclaredMethod(init);
+            initMethod.setAccessible(true);
+        }
+        if (StringUtil.hasText(destroy)) {
+            destoryMethod = clazz.getDeclaredMethod(destroy);
+            destoryMethod.setAccessible(true);
+        }
+    }
 
 
     // ------------------------------------------------------------------------------------------
