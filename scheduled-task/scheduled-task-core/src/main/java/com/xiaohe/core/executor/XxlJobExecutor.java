@@ -6,9 +6,12 @@ import com.xiaohe.core.handler.IJobHandler;
 import com.xiaohe.core.handler.annotation.XxlJob;
 import com.xiaohe.core.handler.impl.MethodJobHandler;
 import com.xiaohe.core.log.XxlJobFileAppender;
+import com.xiaohe.core.server.EmbedServer;
 import com.xiaohe.core.thread.JobLogFileCleanThread;
 import com.xiaohe.core.thread.JobThread;
 import com.xiaohe.core.thread.TriggerCallbackThread;
+import com.xiaohe.core.util.IPUtil;
+import com.xiaohe.core.util.NetUtil;
 import com.xiaohe.core.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -229,6 +232,25 @@ public class XxlJobExecutor {
         }
     }
 
+    // ---------------------------------EmbedServer-------------------------------------
+    /**
+     * 执行器端的服务器
+     */
+    private EmbedServer embedServer;
+
+    private void initEmbedServer(String address, String ip, int port, String appname, String accessToken) throws Exception {
+        port = port > 0 ? port : NetUtil.findAvailablePort(9999);
+        ip = StringUtil.hasText(ip) ? ip : IPUtil.getIp();
+        if (!StringUtil.hasText(address)) {
+            String ip_port_address = IPUtil.getIpPort(ip, port);
+            address = "http://{ip_port}/".replace("{ip_port}", ip_port_address);
+        }
+        if (!StringUtil.hasText(accessToken)) {
+            logger.error(">>>>>>>>>>>>>>>>>>> xxl-job access token is empty. To ensure system security, please set the access token");
+        }
+        embedServer = new EmbedServer();
+        embedServer.start(address, port, appname, accessToken);
+    }
 
     // ------------------------------------------------------------------------------------------
     // 这些setter都是用户在config中配置的，毕竟用户需要指定日志文件放在哪里。
