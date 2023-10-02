@@ -10,6 +10,7 @@ import com.xiaohe.core.server.EmbedServer;
 import com.xiaohe.core.thread.JobLogFileCleanThread;
 import com.xiaohe.core.thread.JobThread;
 import com.xiaohe.core.thread.TriggerCallbackThread;
+import com.xiaohe.core.util.CollectionUtil;
 import com.xiaohe.core.util.IPUtil;
 import com.xiaohe.core.util.NetUtil;
 import com.xiaohe.core.util.StringUtil;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -72,7 +74,7 @@ public class XxlJobExecutor {
 
 
     /**
-     * 执行器的启动方法
+     * 执行器的启动方法, 所有bean加载完之后在回调方法中调用
      */
     public void start() throws Exception {
         // 指定日志文件的存放位置
@@ -89,6 +91,34 @@ public class XxlJobExecutor {
 
         // 启动执行器的服务端
         initEmbedServer(address, ip, port, appname, accessToken);
+
+    }
+
+    /**
+     * 停止执行器。Spring容器销毁前启动
+     */
+    public void stop() {
+        // 停止内嵌服务器(这个服务器停止，连带着注册线程也停止了。)
+        stopEmbedServer();
+        // 停止各个任务的线程
+        if (!CollectionUtil.isEmpty(jobThreadRepository)) {
+            for (Map.Entry<Integer, JobThread> item : jobThreadRepository.entrySet()) {
+                JobThread jobThread = removeJobThread(item.getKey(), "web container destroy and kill the job");
+                if (jobThread != null) {
+                    try {
+                        jobThread.join();
+                    } catch (InterruptedException e) {
+                        logger.error(">>>>>>>>>>>>>>> xxl-job, JobThread destroy(join) error, jobId:{}", jobThread.getId());
+                    }
+                }
+            }
+            jobThreadRepository.clear();
+        }
+        // 清空缓存
+        jobHandlerRepository.clear();
+        // 停止回调线程、日志清除线程
+        JobLogFileCleanThread.getInstance().toStop();
+        TriggerCallbackThread.getInstance().toStop();
 
     }
 
@@ -258,6 +288,16 @@ public class XxlJobExecutor {
         }
         embedServer = new EmbedServer();
         embedServer.start(address, port, appname, accessToken);
+    }
+
+    private void stopEmbedServer() {
+        if (embedServer != null) {
+            try {
+                embedServer.stop();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
     }
 
     // ------------------------------------------------------------------------------------------

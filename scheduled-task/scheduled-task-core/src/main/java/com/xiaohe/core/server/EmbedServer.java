@@ -3,6 +3,7 @@ package com.xiaohe.core.server;
 import com.xiaohe.core.biz.ExecutorBiz;
 import com.xiaohe.core.biz.impl.ExecutorBizImpl;
 import com.xiaohe.core.model.*;
+import com.xiaohe.core.thread.ExecutorRegistryThread;
 import com.xiaohe.core.util.JsonUtil;
 import com.xiaohe.core.util.StringUtil;
 import com.xiaohe.core.util.XxlJobRemotingUtil;
@@ -80,8 +81,8 @@ public class EmbedServer {
                 // 绑定端口号
                 ChannelFuture future = bootstrap.bind(port).sync();
                 logger.info(">>>>>>>>>>>>>>> xxl-job remoting server start success, nettype = {}, port = {}", EmbedServer.class, port);
-                // TODO 执行器的服务端启动后立即向调度中心注册
-
+                // 开始定时注册
+                ExecutorRegistryThread.getInstance().start(appname, address);
             } catch (Exception e) {
                 logger.error(">>>>>>>>>>>>>> xxl-job remoting server error.", e);
             } finally {
@@ -120,7 +121,8 @@ public class EmbedServer {
         if (thread != null && thread.isAlive()) {
             thread.interrupt();
         }
-        // TODO 停止此执行器向调度中心注册
+        // 停止此执行器的注册
+        ExecutorRegistryThread.getInstance().toStop();
         logger.info(">>>>>>>>>>>>>xxl-job remoting server destroy success.");
     }
 
