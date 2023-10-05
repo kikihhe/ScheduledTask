@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -95,6 +96,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     @Resource
     private XxlJobUserMapper xxlJobUserMapper;
 
+    @Resource
+    private JavaMailSender mailSender;
+
 
 
 
@@ -102,13 +106,6 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
         return adminConfig;
     }
 
-    public static Logger getLogger() {
-        return logger;
-    }
-
-    public static void setLogger(Logger logger) {
-        XxlJobAdminConfig.logger = logger;
-    }
 
     public static void setAdminConfig(XxlJobAdminConfig adminConfig) {
         XxlJobAdminConfig.adminConfig = adminConfig;
@@ -192,5 +189,13 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
     public void setXxlJobUserMapper(XxlJobUserMapper xxlJobUserMapper) {
         this.xxlJobUserMapper = xxlJobUserMapper;
+    }
+
+    public JavaMailSender getMailSender() {
+        return mailSender;
+    }
+
+    public void setMailSender(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
     }
 }
