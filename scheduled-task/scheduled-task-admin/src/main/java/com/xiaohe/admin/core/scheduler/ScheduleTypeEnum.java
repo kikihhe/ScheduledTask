@@ -13,16 +13,13 @@ public enum ScheduleTypeEnum {
 
     /**
      * cron表达式类型
-      */
+     */
     CRON("schedule_type_cron"),
 
     /**
      * 固定频率类型
-      */
-    FIX_RATE("schedule_type_fix_rate")
-
-
-    ;
+     */
+    FIX_RATE("schedule_type_fix_rate");
 
     private String title;
 
@@ -40,9 +37,9 @@ public enum ScheduleTypeEnum {
 
     /**
      * 匹配某一种策略
+     *
      * @param name
      * @param defaultEnum
-     * @return
      */
     public static ScheduleTypeEnum match(String name, ScheduleTypeEnum defaultEnum) {
         for (ScheduleTypeEnum value : ScheduleTypeEnum.values()) {
