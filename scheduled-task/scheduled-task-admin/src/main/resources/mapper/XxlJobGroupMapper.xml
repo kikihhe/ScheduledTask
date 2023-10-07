@@ -34,4 +34,23 @@
         from xxl_job_group as t
         where t.`id` = #{jobGroup}
     </select>
+<!--    查找自动注册的执行器组-->
+    <select id="findByAddressType" resultType="com.xiaohe.admin.core.model.XxlJobGroup">
+        select <include refid="Base_Column_List"/>
+        from xxl_job_group as t
+        where t.`address_type` = #{addressType}
+    </select>
+
+<!--    批量更新-->
+    <update id="updateBatch" parameterType="com.xiaohe.admin.core.model.XxlJobGroup">
+        <foreach collection="groupList" item="group" separator=";">
+            update xxl_job_group
+            set `appname` = #{group.appname},
+                `title` = #{group.title},
+                `address_type` = #{group.addressType},
+                `address_list` = #{group.addressList},
+                `update_time` = #{group.updateTime}
+            where `id` = #{group.id}
+        </foreach>
+    </update>
 </mapper>

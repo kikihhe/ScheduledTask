@@ -91,6 +91,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     private XxlJobLogGlueMapper xxlJobLogGlueMapper;
 
     @Resource
+    private XxlJobRegistryMapper xxlJobRegistryMapper;
+
+    @Resource
     private XxlJobLogMapper xxlJobLogMapper;
 
     @Resource
@@ -127,7 +130,18 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
         this.emailFrom = emailFrom;
     }
 
+    public XxlJobRegistryMapper getXxlJobRegistryMapper() {
+        return xxlJobRegistryMapper;
+    }
+
+    public void setXxlJobRegistryMapper(XxlJobRegistryMapper xxlJobRegistryMapper) {
+        this.xxlJobRegistryMapper = xxlJobRegistryMapper;
+    }
+
     public int getTriggerPoolFastMax() {
+        if (triggerPoolFastMax <= 200) {
+            return 200;
+        }
         return triggerPoolFastMax;
     }
 
@@ -136,6 +150,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     }
 
     public int getTriggerPoolSlowMax() {
+        if (triggerPoolSlowMax <= 100) {
+            return 100;
+        }
         return triggerPoolSlowMax;
     }
 

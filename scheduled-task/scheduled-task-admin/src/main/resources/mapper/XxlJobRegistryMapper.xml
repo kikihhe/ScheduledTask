@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaohe.admin.mapper.XxlJobRegistryMapper">
+    <resultMap id="XxlJobRegistry" type="com.xiaohe.admin.core.model.XxlJobRegistry" >
+        <result column="id" property="id" />
+        <result column="registry_group" property="registryGroup" />
+        <result column="registry_key" property="registryKey" />
+        <result column="registry_value" property="registryValue" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+		t.registry_group,
+		t.registry_key,
+		t.registry_value,
+		t.update_time
+    </sql>
+
+
+    <select id="findDead" resultType="java.lang.Integer">
+        select t.id
+        from xxl_job_registry t
+        where t.`update_time` <![CDATA[ < ]]> DATEADD(#{nowTime}, interval -#{timeout} second)
+    </select>
+
+    <delete id="removeDead" parameterType="java.lang.Integer">
+        delete from xxl_job_registry
+        where id in
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="findAll" resultType="com.xiaohe.admin.core.model.XxlJobRegistry">
+        select <include refid="Base_Column_List"/>
+        from xxl_job_registry t
+        where t.update_time <![CDATA[ > ]]> DATEADD(#{nowTime}, interval -#{timeout} second)
+    </select>
+    <delete id="registryDelete">
+        delete from xxl_job_registry
+        where `registry_group` = #{registryGroup} and `registry_key` = #{registryKey} and `registry_value` = #{registryValue}
+    </delete>
+
+<!--    更新数据库信息-->
+    <update id="registryUpdate">
+        update xxl_job_registry
+        set `update_time` = #{updateTime}
+        where `registry_group` = #{registryGroup} and
+        `registry_key` = #{registryKey} and
+        `registry_value` = #{registryValue}
+
+    </update>
+
+    <insert id="registrySave" >
+        INSERT INTO xxl_job_registry( `registry_group` , `registry_key` , `registry_value`, `update_time`)
+        VALUES( #{registryGroup}  , #{registryKey} , #{registryValue}, #{updateTime})
+    </insert>
+</mapper>

@@ -21,4 +21,13 @@ public interface XxlJobGroupMapper {
     public List<XxlJobGroup> findAll();
 
     public XxlJobGroup load(@Param("jobGroup") int jobGroup);
+
+    /**
+     * 查找自动注册的执行器组
+     * @param addressType
+     * @return
+     */
+    public List<XxlJobGroup> findByAddressType(@Param("addressType") Integer addressType);
+
+    public int updateBatch(@Param("groupList") List<XxlJobGroup> groupList);
 }
