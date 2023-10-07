@@ -33,7 +33,7 @@ public interface XxlJobLogMapper {
                                     @Param("triggerTimeEnd") Date triggerTimeEnd,
                                     @Param("logStatus") int logStatus);
 
-    public XxlJobLog loadById(@Param("logId") Integer logId);
+    public XxlJobLog loadById(@Param("logId") Long logId);
 
     /**
      * 查找指定日期/条数的日志，每次最多1000条
@@ -54,4 +54,17 @@ public interface XxlJobLogMapper {
 
 
     void delete(@Param("id") Integer id);
+
+    public List<XxlJobLog> findFailJobLogs(@Param("count") int count);
+
+    /**
+     * 修改任务的告警状态
+     * @param logId
+     * @param oldAlarmStatus
+     * @param newAlarmStatus
+     * @return
+     */
+    public int updateAlarmStatusInt(@Param("logId") long logId,
+                                    @Param("oldAlarmStatus") int oldAlarmStatus,
+                                    @Param("newAlarmStatus") int newAlarmStatus);
 }

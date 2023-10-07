@@ -119,7 +119,7 @@ public class XxlJobLogController {
      */
     @RequestMapping("/logDetailPage")
     public String logDetailPage(int id, Model model) {
-        XxlJobLog xxlJobLog = xxlJobLogMapper.loadById(id);
+        XxlJobLog xxlJobLog = xxlJobLogMapper.loadById(new Long(id));
         if (xxlJobLog == null) {
             throw new RuntimeException("joblog_jogId_unvalid");
         }

@@ -147,4 +147,27 @@
         where job_id = #{id}
     </delete>
 
+<!--    查找执行失败的任务-->
+    <select id="findFailJobLogs" resultType="com.xiaohe.admin.core.model.XxlJobLog">
+        select
+        <include refid="Base_Column_List"/>
+        from `xxl_job_log`
+        where !(
+            (trigger_code in (0, 200) and handle_code = 0)
+            or
+            (handle_code = 200)
+        )
+        and `alarm_status` = 0
+        order by id asc
+        limit #{count}
+    </select>
+
+<!--    -->
+    <update id="updateAlarmStatusInt">
+        update xxl_job_log
+        set
+            `alarm_status` = #{newAlarmStatus}
+        where `id` = #{logId} and `alarm_status` = #{oldAlarmStatus}
+    </update>
+
 </mapper>

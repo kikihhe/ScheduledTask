@@ -1,6 +1,7 @@
 package com.xiaohe.admin.core.conf;
 
 
+import com.xiaohe.admin.core.alarm.JobAlarmer;
 import com.xiaohe.admin.core.scheduler.XxlJobScheduler;
 import com.xiaohe.admin.mapper.*;
 import org.slf4j.Logger;
@@ -101,6 +102,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
     @Resource
     private JavaMailSender mailSender;
+
+    @Resource
+    private JobAlarmer jobAlarmer;
 
 
 
@@ -214,5 +218,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
     public void setMailSender(JavaMailSender mailSender) {
         this.mailSender = mailSender;
+    }
+
+    public JobAlarmer getJobAlarmer() {
+        return jobAlarmer;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +22,7 @@ import java.util.Map;
  * @Description :
  * @date : 2023-10-05 21:00
  */
+@Component
 public class JobAlarmer implements ApplicationContextAware, InitializingBean {
     private static Logger logger = LoggerFactory.getLogger(JobAlarmer.class);
     private ApplicationContext applicationContext;
