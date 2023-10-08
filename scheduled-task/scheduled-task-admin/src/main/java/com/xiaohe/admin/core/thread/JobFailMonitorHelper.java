@@ -41,7 +41,7 @@ public class JobFailMonitorHelper {
                 try {
                     // 从数据库中查询失败的任务, 一次1000个
                     List<XxlJobLog> failJobLogs = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().findFailJobLogs(1000);
-                    if (CollectionUtil.isEmpty(failJobLogs)) {
+                    if (!CollectionUtil.isEmpty(failJobLogs)) {
                         alarm(failJobLogs);
                     }
                 } catch (Exception e) {
