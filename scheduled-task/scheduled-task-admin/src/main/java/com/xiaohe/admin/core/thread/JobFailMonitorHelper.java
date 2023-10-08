@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author : 小何
- * @Description :任务失败，发送消息的
+ * @Description :任务失败，发送告警的
  * @date : 2023-10-07 23:19
  */
 public class JobFailMonitorHelper {
