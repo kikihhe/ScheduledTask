@@ -2,6 +2,7 @@ package com.xiaohe.core.thread;
 
 import com.xiaohe.core.context.XxlJobContext;
 import com.xiaohe.core.context.XxlJobHelper;
+import com.xiaohe.core.executor.XxlJobExecutor;
 import com.xiaohe.core.handler.IJobHandler;
 import com.xiaohe.core.log.XxlJobFileAppender;
 import com.xiaohe.core.model.HandlerCallbackParam;
@@ -112,7 +113,8 @@ public class JobThread extends Thread {
                 if (triggerParam == null) {
                     // 如果阻塞3s没有调度参数，并且现在已经循环了30次，队列中还是没有数据，得，销毁线程
                     if (idleTimes > 30 && triggerQueue.isEmpty()) {
-                        // TODO 调用XxlJobExecutor.removeJobThread() 去销毁线程
+                        // 调用XxlJobExecutor.removeJobThread() 去销毁线程
+                        XxlJobExecutor.removeJobThread(jobId, "太久不执行，线程销毁了");
                     }
                 } else {
                     // 调度参数不为空，将running改为true, 空转次数改为0

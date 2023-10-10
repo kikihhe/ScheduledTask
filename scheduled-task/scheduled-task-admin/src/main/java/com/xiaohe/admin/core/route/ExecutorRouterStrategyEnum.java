@@ -1,6 +1,5 @@
 package com.xiaohe.admin.core.route;
 
-import com.xiaohe.admin.core.route.ExecutorRouter;
 import com.xiaohe.admin.core.route.strategy.*;
 
 /**
@@ -8,7 +7,7 @@ import com.xiaohe.admin.core.route.strategy.*;
  * @Description :
  * @date : 2023-10-09 16:08
  */
-public enum ExecutorRouterEnum {
+public enum ExecutorRouterStrategyEnum {
     FIRST("jobconf_route_first", new ExecutorRouteFirst()),
     LAST("jobconf_route_last", new ExecutorRouteLast()),
     RANDOM("jobconf_route_random", new ExecutorRouteRandom()),
@@ -17,13 +16,13 @@ public enum ExecutorRouterEnum {
     LEAST_RECENTLY_USED("jobconf_route_lru", new ExecutorRouteLRU()),
     FAILOVER("jobconf_route_failover", new ExecutorRouteFailover()),
     BUSYOVER("jobconf_route_busyover", new ExecutorRouteBusyOver()),
-    SHAEDING_BROADCAST("jobconf_route_sharding",  null)
+    SHARDING_BROADCAST("jobconf_route_sharding",  null)
     ;
     private String title;
 
     private ExecutorRouter executorRouter;
 
-    ExecutorRouterEnum(String title, ExecutorRouter executorRouter) {
+    ExecutorRouterStrategyEnum(String title, ExecutorRouter executorRouter) {
         this.title = title;
         this.executorRouter = executorRouter;
     }
@@ -36,8 +35,8 @@ public enum ExecutorRouterEnum {
         return executorRouter;
     }
 
-    public static ExecutorRouterEnum match(String name, ExecutorRouterEnum defaultEnum) {
-        for (ExecutorRouterEnum routeEnum :ExecutorRouterEnum.values()){
+    public static ExecutorRouterStrategyEnum match(String name, ExecutorRouterStrategyEnum defaultEnum) {
+        for (ExecutorRouterStrategyEnum routeEnum : ExecutorRouterStrategyEnum.values()){
             if (routeEnum.getTitle().equals(name)) {
                 return routeEnum;
             }

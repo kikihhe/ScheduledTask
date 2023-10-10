@@ -15,6 +15,13 @@ import java.util.List;
 @Mapper
 public interface XxlJobLogMapper {
     /**
+     * 保存，返回主键
+     * @param xxlJobLog
+     * @return
+     */
+    public long save(XxlJobLog xxlJobLog);
+
+    /**
      * 根据执行器组和执行器id查询对应日志，可以指定调度日期
      * @param start
      * @param length
@@ -67,4 +74,11 @@ public interface XxlJobLogMapper {
     public int updateAlarmStatusInt(@Param("logId") long logId,
                                     @Param("oldAlarmStatus") int oldAlarmStatus,
                                     @Param("newAlarmStatus") int newAlarmStatus);
+
+    /**
+     * 更新调度信息
+     * @param xxlJobLog
+     * @return
+     */
+    public int updateTriggerInfo(XxlJobLog xxlJobLog);
 }
