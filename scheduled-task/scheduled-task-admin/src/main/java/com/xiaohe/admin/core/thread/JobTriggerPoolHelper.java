@@ -2,6 +2,7 @@ package com.xiaohe.admin.core.thread;
 
 import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
+import com.xiaohe.admin.core.trigger.XxlJobTrigger;
 import groovy.transform.AutoImplement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +139,7 @@ public class JobTriggerPoolHelper {
             // start用于记录此次执行花费时间
             long start = System.currentTimeMillis();
             try {
-                // TODO 使用 XxlJobTrigger 调度任务
+                XxlJobTrigger.trigger(jobId, triggerType, failRetryCount, executorShardingParam, executorParam, addressList);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             } finally {
