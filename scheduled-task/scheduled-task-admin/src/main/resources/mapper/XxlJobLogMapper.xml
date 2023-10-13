@@ -177,7 +177,7 @@
         limit #{count}
     </select>
 
-<!--    -->
+    <!--    -->
     <update id="updateAlarmStatusInt">
         update xxl_job_log
         set
@@ -207,4 +207,15 @@
             `handle_msg` = #{handleMsg}
         where `id` = #{id};
     </update>
+
+<!--    -->
+    <select id="findLostJobIds" resultType="java.lang.Long">
+        select id
+        from xxl_job_log log
+                 left join xxl_job_registry registry on log.executor_address = registry.registry_value
+        where log.trigger_code = 200
+          and log.handle_code = 0
+          andt.trigger_time <![CDATA[ <= ]]> #{losedTime}
+        and registry.id is null;
+    </select>
 </mapper>

@@ -147,7 +147,7 @@ public class XxlJobTrigger {
         xxlJobLog.setExecutorShardingParam(shardingParam);
         xxlJobLog.setTriggerCode(triggerResult.getCode());
         xxlJobLog.setTriggerMsg(triggerMsgSb.toString());
-        // 更新数据库中的 log
+        // 更新数据库中的调度的log (当然，执行完还会更新执行的log)
         XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().updateTriggerInfo(xxlJobLog);
         logger.debug(">>>>>>>>>>>> xxl-job trigger end, jobId:{}", jobInfo.getId());
     }

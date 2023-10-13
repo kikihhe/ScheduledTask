@@ -88,4 +88,10 @@ public interface XxlJobLogMapper {
      * @return
      */
     int updateHandleInfo(XxlJobLog xxlJobLog);
+
+    /**
+     * 找到10分钟内 调度了 && 没执行 && 执行器宕机 的log
+     * @param losedTime
+     */
+    public List<Long> findLostJobIds(@Param("losedTime") Date losedTime);
 }
