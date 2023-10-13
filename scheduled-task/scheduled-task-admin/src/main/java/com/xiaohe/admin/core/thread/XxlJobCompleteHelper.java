@@ -106,7 +106,7 @@ public class XxlJobCompleteHelper {
                         logger.warn(">>>>>>>>>> xxl-job, callback too fast, match threadpool rejected handler(run now)");
                     }
                 }
-        )
+        );
     }
 
 }
