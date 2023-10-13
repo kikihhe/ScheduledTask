@@ -199,4 +199,12 @@
             `executor_fail_retry_count`= #{executorFailRetryCount}
         WHERE `id`= #{id}
     </update>
+    <update id="updateHandleInfo">
+        update xxl_job_log
+        set
+            `handle_time` = #{handleTime},
+            `handle_code` = #{handlerCode},
+            `handle_msg` = #{handleMsg}
+        where `id` = #{id};
+    </update>
 </mapper>

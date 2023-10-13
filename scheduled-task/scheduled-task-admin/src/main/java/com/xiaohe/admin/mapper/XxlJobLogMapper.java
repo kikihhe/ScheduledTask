@@ -76,9 +76,16 @@ public interface XxlJobLogMapper {
                                     @Param("newAlarmStatus") int newAlarmStatus);
 
     /**
-     * 更新调度信息
+     * 调度完（执行前）更新调度信息
      * @param xxlJobLog
      * @return
      */
     public int updateTriggerInfo(XxlJobLog xxlJobLog);
+
+    /**
+     * 执行完更新执行信息
+     * @param xxlJobLog
+     * @return
+     */
+    int updateHandleInfo(XxlJobLog xxlJobLog);
 }
