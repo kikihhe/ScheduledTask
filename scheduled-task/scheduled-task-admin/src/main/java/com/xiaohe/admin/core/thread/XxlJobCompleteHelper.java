@@ -3,6 +3,7 @@ package com.xiaohe.admin.core.thread;
 import com.xiaohe.admin.core.complete.XxlJobCompleter;
 import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobLog;
+import com.xiaohe.core.model.HandlerCallbackParam;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.DateUtil;
 import org.slf4j.Logger;
@@ -69,8 +70,6 @@ public class XxlJobCompleteHelper {
                     xxlJobLog.setHandleMsg("joblog_lost_fail");
                     XxlJobCompleter.updateHandleInfoAndFinish(xxlJobLog);
                 }
-
-
                 // 一分钟扫描一次
                 try {
                     TimeUnit.SECONDS.sleep(60);
@@ -107,6 +106,62 @@ public class XxlJobCompleteHelper {
                     }
                 }
         );
+    }
+
+    /**
+     * 停止线程和线程池
+     */
+    public void toStop() {
+        toStop = true;
+        callbackThreadPool.shutdownNow();
+        monitorThread.interrupt();
+        try {
+            monitorThread.join();
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 处理执行器发送来的执行结果回调，批量处理
+     * @param handlerCallbackParams
+     * @return
+     */
+    public Result callback(List<HandlerCallbackParam> handlerCallbackParams) {
+        callbackThreadPool.execute(() -> {
+            for (HandlerCallbackParam handlerCallbackParam : handlerCallbackParams) {
+                Result callback = callback(handlerCallbackParam);
+                logger.debug(">>>>>>>>>>> JobApiController.callback: {}, handleCallbackParam= {}, callbackResult= {}",
+                        callback.getCode() == Result.SUCCESS_CODE ? "success" : "fail",
+                        handlerCallbackParam,
+                        callback
+                );
+            }
+        });
+    }
+
+    private Result callback(HandlerCallbackParam handlerCallbackParam) {
+        XxlJobLog log = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().loadById(handlerCallbackParam.getLogId());
+        if (log == null) {
+            return Result.error("log item not found");
+        }
+        // 如果执行状态大于0，说明不管成功还是失败总之这个任务执行过一次
+        if (log.getHandlerCode() > 0) {
+            return Result.error("log repeate callback.");
+        }
+        StringBuffer handleMsg = new StringBuffer();
+        if (log.getHandleMsg() != null) {
+            handleMsg.append(log.getHandleMsg()).append("<br>");
+        }
+        if (handlerCallbackParam.getHandleMsg() != null) {
+            handleMsg.append(handlerCallbackParam.getHandleMsg()).append("<br>");
+        }
+        log.setHandleTime(new Date());
+        log.setHandlerCode(handlerCallbackParam.getHandleCode());
+        log.setHandleMsg(handleMsg.toString());
+        // 更新数据库中的Log的执行信息
+        XxlJobCompleter.updateHandleInfoAndFinish(log);
+        return Result.SUCCESS;
     }
 
 }
