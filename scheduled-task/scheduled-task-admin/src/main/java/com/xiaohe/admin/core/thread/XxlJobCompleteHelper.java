@@ -138,6 +138,7 @@ public class XxlJobCompleteHelper {
                 );
             }
         });
+        return Result.SUCCESS;
     }
 
     private Result callback(HandlerCallbackParam handlerCallbackParam) {
