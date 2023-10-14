@@ -16,16 +16,16 @@ import java.util.concurrent.*;
 /**
  * @author : 小何
  * @Description :
- * 1. 对于执行器发送的执行结果回调做出具体的处理 (并没有接收，调度中心的HTTP服务器接收后调用 XxlJobCompleteHelper 做出处理)
+ * 1. 对于执行器发送的执行结果回调做出具体的处理 (并没有接收，调度中心的HTTP服务器接收后调用 JobCompleteHelper 做出处理)
  * 2. 对于 调度成功，但是由于执行器宕机而无法对执行状态 (handle_code) 做出更改的这些任务，将它们的执行状态改为失败。
- *     为什么呢？因为这些任务可能需要重试，但是 handle_code 不为0无法重试。所以用 XxlJobCompleteHelper 将状态改一下。
+ *     为什么呢？因为这些任务可能需要重试，但是 handle_code 不为0无法重试。所以用 JobCompleteHelper 将状态改一下。
  * @date : 2023-10-13 21:52
  */
-public class XxlJobCompleteHelper {
-    private static Logger logger = LoggerFactory.getLogger(XxlJobCompleteHelper.class);
+public class JobCompleteHelper {
+    private static Logger logger = LoggerFactory.getLogger(JobCompleteHelper.class);
 
-    private static XxlJobCompleteHelper instance = new XxlJobCompleteHelper();
-    public static XxlJobCompleteHelper getInstance() {
+    private static JobCompleteHelper instance = new JobCompleteHelper();
+    public static JobCompleteHelper getInstance() {
         return instance;
     }
     /**
