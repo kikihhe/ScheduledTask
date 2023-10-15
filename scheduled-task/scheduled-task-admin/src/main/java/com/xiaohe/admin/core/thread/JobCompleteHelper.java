@@ -17,6 +17,8 @@ import java.util.concurrent.*;
  * @author : 小何
  * @Description :
  * 1. 对于执行器发送的执行结果回调做出具体的处理 (并没有接收，调度中心的HTTP服务器接收后调用 JobCompleteHelper 做出处理)
+ *    这里的处理也只是把任务的执行信息写到数据库。毕竟之前数据库的log里只有log信息。
+
  * 2. 对于 调度成功，但是由于执行器宕机而无法对执行状态 (handle_code) 做出更改的这些任务，将它们的执行状态改为失败。
  *     为什么呢？因为这些任务可能需要重试，但是 handle_code 不为0无法重试。所以用 JobCompleteHelper 将状态改一下。
  * @date : 2023-10-13 21:52
