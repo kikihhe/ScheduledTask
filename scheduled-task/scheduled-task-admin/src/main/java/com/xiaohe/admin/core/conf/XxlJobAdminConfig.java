@@ -101,6 +101,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     private XxlJobUserMapper xxlJobUserMapper;
 
     @Resource
+    private XxlJobLogReportMapper xxlJobLogReportMapper;
+
+    @Resource
     private JavaMailSender mailSender;
 
     @Resource
@@ -158,6 +161,14 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
             return 100;
         }
         return triggerPoolSlowMax;
+    }
+
+    public XxlJobLogReportMapper getXxlJobLogReportMapper() {
+        return xxlJobLogReportMapper;
+    }
+
+    public void setXxlJobLogReportMapper(XxlJobLogReportMapper xxlJobLogReportMapper) {
+        this.xxlJobLogReportMapper = xxlJobLogReportMapper;
     }
 
     public void setTriggerPoolSlowMax(int triggerPoolSlowMax) {

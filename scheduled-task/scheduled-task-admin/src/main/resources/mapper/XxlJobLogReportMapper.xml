@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaohe.admin.mapper.XxlJobLogReportMapper">
+
+
+    <update id="update" parameterType="com.xiaohe.admin.core.model.XxlJobLogReport">
+        update xxl_job_log_report
+        set `running_count` = #{runningCount}, `suc_count` = #{sucCount}, `fail_count` = #{failCount}
+        where `trigger_day` = #{triggerDay}
+    </update>
+    <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="com.xiaohe.admin.core.model.XxlJobLogReport">
+        insert into xxl_job_log_report (`trigger_day`,
+                                        `running_count`,
+                                        `suc_count`,
+                                        `fail_count`)
+        values (#{triggerDay}, #{runningCount}, #{sucCount}, #{failCount})
+    </insert>
+</mapper>

@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author : 小何
@@ -94,4 +95,8 @@ public interface XxlJobLogMapper {
      * @param losedTime
      */
     public List<Long> findLostJobIds(@Param("losedTime") Date losedTime);
+
+    public Map<String, Object> findLogReport(@Param("from")Date from,
+                                             @Param("to") Date to);
+
 }
