@@ -60,6 +60,7 @@ public class JobLogReportHelper {
                     }
                 }
             }
+            logger.info(">>>>>>>>>>> xxl-job, job log report thread stop");
         });
         logThread.setDaemon(true);
         logThread.setName("xxl-job, admin JobLogReportHelper");
