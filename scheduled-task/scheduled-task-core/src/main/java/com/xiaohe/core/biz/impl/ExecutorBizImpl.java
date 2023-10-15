@@ -64,19 +64,48 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
     @Override
     public Result run(TriggerParam triggerParam) {
-        // 从JobThread中得到定时任务
+        // 从JobThread中得到旧的JobHandler
         JobThread jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
         IJobHandler jobHandler = jobThread == null ? null : jobThread.getHandler();
-        String removeOldReason = null;
+        StringBuffer removeOldReason = null;
         // 查看此任务有没有合适的调度模式，如果没有，就返回调用失败的信息
         if (triggerParam.getGlueType() == null) {
             return Result.error("glueType[" + triggerParam.getGlueType() + "] is not valid");
         }
         // 只管bean模式，不管在线编辑任务的模式了
+        // 同步JobHandler, 让JobThread里的job handler真正等于 XxlJobExecutor中的JobHandler
+        Result<String> synchronousResult = SynchronousJobHandler(triggerParam, jobHandler, jobThread, removeOldReason);
+        if (synchronousResult != null) return synchronousResult;
+
+        // 走到这里，JobThread里的job handler真正等于 XxlJobExecutor中的JobHandler, 接下来就根据阻塞策略来判断 jobThread的情况。
+        if (jobThread != null) {
+            ExecutorBlockStrategyEnum blockStrategy = ExecutorBlockStrategyEnum.match(triggerParam.getExecutorBlockStrategy(), null);
+            if (ExecutorBlockStrategyEnum.DISCARD_LATER == blockStrategy && jobThread.isRunningOrHasQueue()) {
+                return Result.error("block strategy effect：" + ExecutorBlockStrategyEnum.DISCARD_LATER.getTitle());
+            } else if (ExecutorBlockStrategyEnum.COVER_EARLY == blockStrategy && jobThread.isRunningOrHasQueue()) {
+                removeOldReason.append("block strategy effect：" + ExecutorBlockStrategyEnum.COVER_EARLY.getTitle());
+                jobThread = null;
+            } else {
+
+            }
+        }
+        // jobThread为空有三种情况
+        // 1. 说明任务没有执行过，或者最近没有执行过导致 job thread被销毁了
+        // 2. 新老jobHandler不一样，导致 jobThread被销毁了。
+        // 3. 阻塞策略是覆盖旧任务，导致 jobThread被销毁了
+        // 不管怎样，都要创建一个新的jobThread
+        if (jobThread == null) {
+            jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason.toString());
+        }
+        Result<String> pushResult = jobThread.pushTriggerQueue(triggerParam);
+        return pushResult;
+    }
+
+    private Result<String> SynchronousJobHandler(TriggerParam triggerParam, IJobHandler jobHandler, JobThread jobThread, StringBuffer removeOldReason) {
         IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
         // 如果 jobHandler 与 newJobHandler 不同，说明定时任务被改变了。
         if (jobThread != null && newJobHandler != jobHandler) {
-            removeOldReason = "change jobhandler or glue type, and terminate the old job thread.";
+            removeOldReason.append("change jobhandler or glue type, and terminate the old job thread.");
             jobHandler = null;
             jobThread = null;
         }
@@ -92,27 +121,6 @@ public class ExecutorBizImpl implements ExecutorBiz {
                 return Result.error("job handler [" + triggerParam.getExecutorHandler() + "] not found.");
             }
         }
-        // 走到这里，JobThread里的job handler真正等于 XxlJobExecutor中的JobHandler
-        if (jobThread != null) {
-            ExecutorBlockStrategyEnum blockStrategy = ExecutorBlockStrategyEnum.match(triggerParam.getExecutorBlockStrategy(), null);
-            if (ExecutorBlockStrategyEnum.DISCARD_LATER == blockStrategy && jobThread.isRunningOrHasQueue()) {
-                return Result.error("block strategy effect：" + ExecutorBlockStrategyEnum.DISCARD_LATER.getTitle());
-            } else if (ExecutorBlockStrategyEnum.COVER_EARLY == blockStrategy && jobThread.isRunningOrHasQueue()) {
-                removeOldReason = "block strategy effect：" + ExecutorBlockStrategyEnum.COVER_EARLY.getTitle();
-                jobThread = null;
-            } else {
-
-            }
-        }
-        // jobThread为空有三种情况
-        // 1. 说明任务没有执行过，或者最近没有执行过导致 job thread被销毁了
-        // 2. 新老jobHandler不一样，导致 jobThread被销毁了。
-        // 3. 阻塞策略是覆盖旧任务，导致 jobThread被销毁了
-        // 不管怎样，都要创建一个新的jobThread
-        if (jobThread == null) {
-            jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason);
-        }
-        Result<String> pushResult = jobThread.pushTriggerQueue(triggerParam);
-        return pushResult;
+        return null;
     }
 }
