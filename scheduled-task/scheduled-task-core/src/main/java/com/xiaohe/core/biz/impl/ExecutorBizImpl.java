@@ -101,6 +101,16 @@ public class ExecutorBizImpl implements ExecutorBiz {
         return pushResult;
     }
 
+    /**
+     * 将 JobThread中的JobHandler与XxlJobExecutor中的JobHandler同步
+     * 为什么要同步？
+     * 如果一个任务在创建了JobThread并且还未销毁的时机，web页面修改了这个任务的handler导致 JobThread中的JobHandler与XxlJobExecutor不一样，就会造成错误
+     * @param triggerParam
+     * @param jobHandler
+     * @param jobThread
+     * @param removeOldReason
+     * @return
+     */
     private Result<String> SynchronousJobHandler(TriggerParam triggerParam, IJobHandler jobHandler, JobThread jobThread, StringBuffer removeOldReason) {
         IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
         // 如果 jobHandler 与 newJobHandler 不同，说明定时任务被改变了。
