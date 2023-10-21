@@ -175,8 +175,7 @@
             update xxl_job_info t
             set
                 t.`trigger_last_time` = #{xxlJob.triggerLastTime},
-                t.`trigger_next_time` = #{xxlJob.triggerNextTime},
-                t.`trigger_status` = #{xxlJob.triggerStatus}
+                t.`trigger_next_time` = #{xxlJob.triggerNextTime}
             where id = #{xxlJob.id}
         </foreach>
     </update>
