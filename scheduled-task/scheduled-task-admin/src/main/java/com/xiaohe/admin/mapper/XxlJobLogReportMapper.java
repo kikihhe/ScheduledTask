@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,4 +19,9 @@ public interface XxlJobLogReportMapper {
     public int update(XxlJobLogReport xxlJobLogReport);
 
     int save(XxlJobLogReport xxlJobLogReport);
+
+    public XxlJobLogReport queryLogReportTotal();
+
+    public List<XxlJobLogReport> queryLogReport(@Param("triggerDayFrom") Date triggerDayFrom,
+                                                @Param("triggerDayTo") Date triggerDayTo);
 }

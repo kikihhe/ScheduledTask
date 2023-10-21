@@ -30,4 +30,19 @@ public interface XxlJobGroupMapper {
     public List<XxlJobGroup> findByAddressType(@Param("addressType") Integer addressType);
 
     public int updateBatch(@Param("groupList") List<XxlJobGroup> groupList);
+
+    public List<XxlJobGroup> pageList(@Param("offset") int offset,
+                                      @Param("pagesize") int pagesize,
+                                      @Param("appname") String appname,
+                                      @Param("title") String title);
+
+    public int pageListCount(@Param("offset") int offset,
+                             @Param("pagesize") int pagesize,
+                             @Param("appname") String appname,
+                             @Param("title") String title);
+
+    public int save(XxlJobGroup xxlJobGroup);
+
+    public int update(XxlJobGroup xxlJobGroup);
+    public int remove(@Param("id") int id);
 }

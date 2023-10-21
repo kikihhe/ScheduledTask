@@ -3,21 +3,17 @@ package com.xiaohe.admin.service.impl;
 import com.xiaohe.admin.core.cron.CronExpression;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
+import com.xiaohe.admin.core.model.XxlJobLogReport;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
-import com.xiaohe.admin.mapper.XxlJobGroupMapper;
-import com.xiaohe.admin.mapper.XxlJobInfoMapper;
-import com.xiaohe.admin.mapper.XxlJobLogGlueMapper;
-import com.xiaohe.admin.mapper.XxlJobLogMapper;
+import com.xiaohe.admin.mapper.*;
 import com.xiaohe.admin.service.XxlJobService;
 import com.xiaohe.core.model.Result;
+import com.xiaohe.core.util.DateUtil;
 import com.xiaohe.core.util.StringUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author : 小何
@@ -37,6 +33,9 @@ public class XxlJobServiceImpl implements XxlJobService {
 
     @Resource
     private XxlJobLogGlueMapper xxlJobLogGlueMapper;
+
+    @Resource
+    private XxlJobLogReportMapper xxlJobLogReportMapper;
 
 
 
@@ -90,7 +89,7 @@ public class XxlJobServiceImpl implements XxlJobService {
                 return Result.error("schedule_type system_unvalid");
             }
         }
-        // TODO 判断其他的策略是否符合格式
+
 
         // 开始添加
         jobInfo.setAddTime(new Date());
@@ -121,4 +120,80 @@ public class XxlJobServiceImpl implements XxlJobService {
         xxlJobLogGlueMapper.deleteByJobId(id);
         return Result.success();
     }
+
+    /**
+     * 获取运行报表页面需要的所有数据
+     */
+    @Override
+    public Map<String, Object> dashboardInfo() {
+        int jobInfoCount = xxlJobInfoMapper.findAllCount();
+        int jobLogCount = 0;
+        int jobLogSuccessCount = 0;
+        XxlJobLogReport xxlJobLogReport = xxlJobLogReportMapper.queryLogReportTotal();
+        if (xxlJobLogReport != null) {
+            jobLogCount = xxlJobLogReport.getRunningCount() + xxlJobLogReport.getSucCount() + xxlJobLogReport.getFailCount();
+            jobLogSuccessCount = xxlJobLogReport.getSucCount();
+        }
+        Set<String> executorAddressSet = new HashSet<String>();
+        List<XxlJobGroup> groupList = xxlJobGroupMapper.findAll();
+        if (groupList!=null && !groupList.isEmpty()) {
+            for (XxlJobGroup group: groupList) {
+                if (group.getRegistryList()!=null && !group.getRegistryList().isEmpty()) {
+                    executorAddressSet.addAll(group.getRegistryList());
+                }
+            }
+        }
+        int executorCount = executorAddressSet.size();
+        Map<String, Object> dashboardMap = new HashMap<String, Object>();
+        dashboardMap.put("jobInfoCount", jobInfoCount);
+        dashboardMap.put("jobLogCount", jobLogCount);
+        dashboardMap.put("jobLogSuccessCount", jobLogSuccessCount);
+        dashboardMap.put("executorCount", executorCount);
+        return dashboardMap;
+    }
+
+    public Result chartInfo(Date startDate, Date endDate) {
+
+        List<String> triggerDayList = new ArrayList<String>();
+        List<Integer> triggerDayCountRunningList = new ArrayList<Integer>();
+        List<Integer> triggerDayCountSucList = new ArrayList<Integer>();
+        List<Integer> triggerDayCountFailList = new ArrayList<Integer>();
+        int triggerCountRunningTotal = 0;
+        int triggerCountSucTotal = 0;
+        int triggerCountFailTotal = 0;
+        List<XxlJobLogReport> logReportList = xxlJobLogReportMapper.queryLogReport(startDate, endDate);
+        if (logReportList!=null && logReportList.size()>0) {
+            for (XxlJobLogReport item: logReportList) {
+                String day = DateUtil.formatDate(item.getTriggerDay());
+                int triggerDayCountRunning = item.getRunningCount();
+                int triggerDayCountSuc = item.getSucCount();
+                int triggerDayCountFail = item.getFailCount();
+                triggerDayList.add(day);
+                triggerDayCountRunningList.add(triggerDayCountRunning);
+                triggerDayCountSucList.add(triggerDayCountSuc);
+                triggerDayCountFailList.add(triggerDayCountFail);
+                triggerCountRunningTotal += triggerDayCountRunning;
+                triggerCountSucTotal += triggerDayCountSuc;
+                triggerCountFailTotal += triggerDayCountFail;
+            }
+        }
+        else {
+            for (int i = -6; i <= 0; i++) {
+                triggerDayList.add(DateUtil.formatDate(DateUtil.addDays(new Date(), i)));
+                triggerDayCountRunningList.add(0);
+                triggerDayCountSucList.add(0);
+                triggerDayCountFailList.add(0);
+            }
+        }
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("triggerDayList", triggerDayList);
+        result.put("triggerDayCountRunningList", triggerDayCountRunningList);
+        result.put("triggerDayCountSucList", triggerDayCountSucList);
+        result.put("triggerDayCountFailList", triggerDayCountFailList);
+        result.put("triggerCountRunningTotal", triggerCountRunningTotal);
+        result.put("triggerCountSucTotal", triggerCountSucTotal);
+        result.put("triggerCountFailTotal", triggerCountFailTotal);
+        return Result.success(result);
+    }
+
 }

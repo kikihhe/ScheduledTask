@@ -32,4 +32,15 @@ public interface XxlJobInfoMapper {
     public List<XxlJobInfo> scheduleJobQuery(@Param("maxNextTime") long maxNextTime, @Param("maxCount") int maxCount);
 
     int scheduleUpdate(@Param("xxlJobInfos") List<XxlJobInfo> xxlJobInfos);
+
+    public int findAllCount();
+
+
+    public int pageListCount(@Param("offset") int offset,
+                             @Param("pagesize") int pagesize,
+                             @Param("jobGroup") int jobGroup,
+                             @Param("triggerStatus") int triggerStatus,
+                             @Param("jobDesc") String jobDesc,
+                             @Param("executorHandler") String executorHandler,
+                             @Param("author") String author);
 }

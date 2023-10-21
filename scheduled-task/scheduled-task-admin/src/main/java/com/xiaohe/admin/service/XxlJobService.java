@@ -3,6 +3,7 @@ package com.xiaohe.admin.service;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.core.model.Result;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -19,4 +20,8 @@ public interface XxlJobService {
     Result<String> update(XxlJobInfo jobInfo);
 
     Result remove(Integer id);
+
+    public Map<String,Object> dashboardInfo();
+
+    public Result<Map<String,Object>> chartInfo(Date startDate, Date endDate);
 }
