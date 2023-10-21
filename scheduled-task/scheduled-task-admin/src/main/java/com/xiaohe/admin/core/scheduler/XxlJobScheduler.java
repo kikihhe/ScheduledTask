@@ -1,6 +1,7 @@
 package com.xiaohe.admin.core.scheduler;
 
 import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.thread.*;
 import com.xiaohe.core.biz.ExecutorBiz;
 import com.xiaohe.core.biz.client.ExecutorBizClient;
 import com.xiaohe.core.util.StringUtil;
@@ -11,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author : 小何
- * @Description : 调度中心
+ * @Description : 调度中心 可以启动xxl-job的几个组件，可以获取与执行器通信的ExecutorBiz
  * @date : 2023-10-05 19:45
  */
 public class XxlJobScheduler {
@@ -23,11 +24,32 @@ public class XxlJobScheduler {
     private static ConcurrentHashMap<String, ExecutorBiz> executorBizRepository = new ConcurrentHashMap<>();
 
     public void start() {
+        // 快慢线程池
+        JobTriggerPoolHelper.toStart();
 
+        // 开始接收注册
+        JobRegistryHelper.getInstance().start();
+
+        // 任务失败告警组件
+        JobFailMonitorHelper.getInstance().start();
+
+        // 接收回调信息
+        JobCompleteHelper.getInstance().start();
+
+        // 定时统计日志，定时删除数据库中的日志
+        JobLogReportHelper.getInstance().start();
+
+        // 从数据库中选择数据执行
+        JobScheduleHelper.getInstance().start();
     }
 
     public void destroy() {
-
+        JobScheduleHelper.getInstance().toStop();
+        JobLogReportHelper.getInstance().toStop();
+        JobCompleteHelper.getInstance().toStop();
+        JobFailMonitorHelper.getInstance().toStop();
+        JobRegistryHelper.getInstance().toStop();
+        JobTriggerPoolHelper.toStop();
     }
 
 
