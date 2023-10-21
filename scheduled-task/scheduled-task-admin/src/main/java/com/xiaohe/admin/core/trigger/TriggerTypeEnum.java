@@ -16,6 +16,9 @@ public enum TriggerTypeEnum {
 
     API("jobconf_trigger_type_api"),
 
+    /**
+     * 这个任务没有被调度，别说指定时间前5s，哪怕又过了5s依旧没有被调度，就视为过期任务
+     */
     MISFIRE("jobconf_trigger_type_misfire");
 
     private String title;

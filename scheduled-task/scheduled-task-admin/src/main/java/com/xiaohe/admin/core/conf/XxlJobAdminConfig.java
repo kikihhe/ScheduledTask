@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.sql.DataSource;
 
 /**
  * @author : 小何
@@ -108,6 +109,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
     @Resource
     private JobAlarmer jobAlarmer;
+
+    @Resource
+    private DataSource dataSource;
 
 
 
@@ -233,5 +237,13 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
     public JobAlarmer getJobAlarmer() {
         return jobAlarmer;
+    }
+
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 }

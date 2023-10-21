@@ -28,4 +28,8 @@ public interface XxlJobInfoMapper {
     public int save(XxlJobInfo jobInfo);
 
     void delete(@Param("id") Integer id);
+
+    public List<XxlJobInfo> scheduleJobQuery(@Param("maxNextTime") long maxNextTime, @Param("maxCount") int maxCount);
+
+    int scheduleUpdate(@Param("xxlJobInfos") List<XxlJobInfo> xxlJobInfos);
 }
