@@ -122,10 +122,10 @@ public class ExecutorBizImpl implements ExecutorBiz {
         // 这里的 jobHandler 为空有两种情况:
         // 1. jobThread为空，(导致上面那个if没有走) 说明任务没有执行过，或者最近没有执行过导致 job thread被销毁了。
         // 2. 由于 新、老job handler不同导致 jobHandler置为空了(也就是走了上面那个if)
-        // 以上两种不管是什么情况，我们都想要 jobHandler 是 XxlJobExecutor 里面那个Map中的job handler
+        // 以上两种不管是什么情况，我们都想要 jobHandler 是 XxlJobSimpleExecutor 里面那个Map中的job handler
         if (jobHandler == null) {
             jobHandler = newJobHandler;
-            // 如果jobHandler还为空，说明newJobHandler都为空，也就是从 XxlJobExecutor 的 Map 中取出的job handler都为空，
+            // 如果jobHandler还为空，说明newJobHandler都为空，也就是从 XxlJobSimpleExecutor 的 Map 中取出的job handler都为空，
             // 也就是这个任务连注册都没有注册过，直接不执行了，返回错误信息
             if (jobHandler == null) {
                 return Result.error("job handler [" + triggerParam.getExecutorHandler() + "] not found.");
