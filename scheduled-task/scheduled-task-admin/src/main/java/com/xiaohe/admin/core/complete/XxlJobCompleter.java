@@ -79,7 +79,7 @@ public class XxlJobCompleter {
         }
     }
 
-    private static boolean isNumber(String str) {
+    public static boolean isNumber(String str) {
         try {
             int a = Integer.parseInt(str);
         } catch (Exception e) {

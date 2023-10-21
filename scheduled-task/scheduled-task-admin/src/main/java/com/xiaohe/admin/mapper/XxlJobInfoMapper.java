@@ -46,4 +46,6 @@ public interface XxlJobInfoMapper {
 
 
     public int update(XxlJobInfo xxlJobInfo);
+
+    public List<XxlJobInfo> getJobsByGroup(@Param("jobGroup") int jobGroup);
 }

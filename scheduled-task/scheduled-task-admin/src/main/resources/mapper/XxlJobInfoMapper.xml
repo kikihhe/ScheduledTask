@@ -235,4 +235,10 @@
         WHERE id = #{id}
     </update>
 
+    <select id="getJobsByGroup" parameterType="java.util.HashMap" resultMap="XxlJobInfo">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_info AS t
+        WHERE t.job_group = #{jobGroup}
+    </select>
+
 </mapper>

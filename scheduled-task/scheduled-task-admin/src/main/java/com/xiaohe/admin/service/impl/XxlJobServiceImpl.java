@@ -1,13 +1,17 @@
 package com.xiaohe.admin.service.impl;
 
+import com.xiaohe.admin.core.complete.XxlJobCompleter;
 import com.xiaohe.admin.core.cron.CronExpression;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLogReport;
+import com.xiaohe.admin.core.route.ExecutorRouterStrategyEnum;
+import com.xiaohe.admin.core.scheduler.MisfireStrategyEnum;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
 import com.xiaohe.admin.core.thread.JobScheduleHelper;
 import com.xiaohe.admin.mapper.*;
 import com.xiaohe.admin.service.XxlJobService;
+import com.xiaohe.core.enums.ExecutorBlockStrategyEnum;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.DateUtil;
 import com.xiaohe.core.util.StringUtil;
@@ -16,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -107,11 +112,119 @@ public class XxlJobServiceImpl implements XxlJobService {
         return Result.success("add success");
     }
 
+    /**
+     * 更新定时任务的方法，
+     */
     @Override
     public Result<String> update(XxlJobInfo jobInfo) {
-        // TODO 更新定时任务
-        return null;
+        if (jobInfo.getJobDesc() == null || jobInfo.getJobDesc().trim().length() == 0) {
+            return new Result<String>(Result.FAIL_CODE, ("system_please_input" + "jobinfo_field_jobdesc"));
+        }
+        if (jobInfo.getAuthor() == null || jobInfo.getAuthor().trim().length() == 0) {
+            return new Result<String>(Result.FAIL_CODE, ("system_please_input" + "jobinfo_field_author"));
+        }
+        ScheduleTypeEnum scheduleTypeEnum = ScheduleTypeEnum.match(jobInfo.getScheduleType(), null);
+        if (scheduleTypeEnum == null) {
+            return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+        }
+        if (scheduleTypeEnum == ScheduleTypeEnum.CRON) {
+            if (jobInfo.getScheduleConf() == null || !CronExpression.isValidExpression(jobInfo.getScheduleConf())) {
+                return new Result<String>(Result.FAIL_CODE, "Cron" + "system_unvalid");
+            }
+        } else if (scheduleTypeEnum == ScheduleTypeEnum.FIX_RATE /*|| scheduleTypeEnum == ScheduleTypeEnum.FIX_DELAY*/) {
+            if (jobInfo.getScheduleConf() == null) {
+                return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+            }
+            try {
+                int fixSecond = Integer.valueOf(jobInfo.getScheduleConf());
+                if (fixSecond < 1) {
+                    return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+                }
+            } catch (Exception e) {
+                return new Result<String>(Result.FAIL_CODE, (("schedule_type") + ("system_unvalid")));
+            }
+        }
+        if (ExecutorRouterStrategyEnum.match(jobInfo.getExecutorRouteStrategy(), null) == null) {
+            return new Result<String>(Result.FAIL_CODE, (("jobinfo_field_executorRouteStrategy") + ("system_unvalid")));
+        }
+        if (MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), null) == null) {
+            return new Result<String>(Result.FAIL_CODE, (("misfire_strategy") + ("system_unvalid")));
+        }
+        if (ExecutorBlockStrategyEnum.match(jobInfo.getExecutorBlockStrategy(), null) == null) {
+            return new Result<String>(Result.FAIL_CODE, (("jobinfo_field_executorBlockStrategy") + ("system_unvalid")));
+        }
+        if (jobInfo.getChildJobId() != null && jobInfo.getChildJobId().trim().length() > 0) {
+            String[] childJobIds = jobInfo.getChildJobId().split(",");
+            for (String childJobIdItem : childJobIds) {
+                if (childJobIdItem != null && childJobIdItem.trim().length() > 0 && XxlJobCompleter.isNumber(childJobIdItem)) {
+                    XxlJobInfo childJobInfo = xxlJobInfoMapper.loadById(Integer.parseInt(childJobIdItem));
+                    if (childJobInfo == null) {
+                        return new Result<String>(Result.FAIL_CODE,
+                                MessageFormat.format((("jobinfo_field_childJobId") + "({0})" + ("system_not_found")), childJobIdItem));
+                    }
+                } else {
+                    return new Result<String>(Result.FAIL_CODE,
+                            MessageFormat.format((("jobinfo_field_childJobId") + "({0})" + ("system_unvalid")), childJobIdItem));
+                }
+            }
+            String temp = "";
+            for (String item : childJobIds) {
+                temp += item + ",";
+            }
+            temp = temp.substring(0, temp.length() - 1);
+            jobInfo.setChildJobId(temp);
+        }
+        XxlJobGroup jobGroup = xxlJobGroupMapper.load(jobInfo.getJobGroup());
+        if (jobGroup == null) {
+            return new Result<String>(Result.FAIL_CODE, ("jobinfo_field_jobgroup" + "system_unvalid"));
+        }
+        //从数据库中查询出旧的定时任务信息
+        XxlJobInfo exists_jobInfo = xxlJobInfoMapper.loadById(jobInfo.getId());
+        if (exists_jobInfo == null) {
+            return new Result<String>(Result.FAIL_CODE, ("jobinfo_field_id" + "system_not_found"));
+        }
+        //既然是更新定时任务，下面就要做点不一样的事，先得到定时任务下一次的执行时间
+        long nextTriggerTime = exists_jobInfo.getTriggerNextTime();
+        //判断调度类型是不是和数据库中存储的相同
+        boolean scheduleDataNotChanged = jobInfo.getScheduleType().equals(exists_jobInfo.getScheduleType()) && jobInfo.getScheduleConf().equals(exists_jobInfo.getScheduleConf());
+        //如果调度类型不一样，并且定时任务现在处于运行的状态，想想你修改定时任务的cron表达式，它就会在下面这里生效
+        if (exists_jobInfo.getTriggerStatus() == 1 && !scheduleDataNotChanged) {
+            try {
+                //根据新的cron表达式，计算定时任务下一次的执行时间。但这里有一个条件，就是从当前时间加5秒之后的定时任务的
+                //执行时间，这么做其实就是在一个新的调度周期中，开始以新的执行时间来调度定时任务
+                Date nextValidTime = JobScheduleHelper.generateNextValidTime(jobInfo, new Date(System.currentTimeMillis() + JobScheduleHelper.PRE_READ_MS));
+                if (nextValidTime == null) {
+                    return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+                }
+                //把新的执行时间赋值给上面的nextTriggerTime
+                nextTriggerTime = nextValidTime.getTime();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+            }
+        }
+        //更新旧的定时任务的信息
+        exists_jobInfo.setJobGroup(jobInfo.getJobGroup());
+        exists_jobInfo.setJobDesc(jobInfo.getJobDesc());
+        exists_jobInfo.setAuthor(jobInfo.getAuthor());
+        exists_jobInfo.setAlarmEmail(jobInfo.getAlarmEmail());
+        exists_jobInfo.setScheduleType(jobInfo.getScheduleType());
+        exists_jobInfo.setScheduleConf(jobInfo.getScheduleConf());
+        exists_jobInfo.setMisfireStrategy(jobInfo.getMisfireStrategy());
+        exists_jobInfo.setExecutorRouteStrategy(jobInfo.getExecutorRouteStrategy());
+        exists_jobInfo.setExecutorHandler(jobInfo.getExecutorHandler());
+        exists_jobInfo.setExecutorParam(jobInfo.getExecutorParam());
+        exists_jobInfo.setExecutorBlockStrategy(jobInfo.getExecutorBlockStrategy());
+        exists_jobInfo.setExecutorTimeout(jobInfo.getExecutorTimeout());
+        exists_jobInfo.setExecutorFailRetryCount(jobInfo.getExecutorFailRetryCount());
+        exists_jobInfo.setChildJobId(jobInfo.getChildJobId());
+        exists_jobInfo.setTriggerNextTime(nextTriggerTime);
+        exists_jobInfo.setUpdateTime(new Date());
+        //更新定时任务
+        xxlJobInfoMapper.update(exists_jobInfo);
+        return Result.SUCCESS;
     }
+
 
     @Override
     public Result remove(Integer id) {
@@ -234,4 +347,18 @@ public class XxlJobServiceImpl implements XxlJobService {
         return Result.SUCCESS;
     }
 
+    /**
+     * 停止定时任务
+     */
+    @Override
+    public Result<String> stop(int id) {
+        XxlJobInfo xxlJobInfo = xxlJobInfoMapper.loadById(id);
+        xxlJobInfo.setTriggerStatus(0);
+        xxlJobInfo.setTriggerLastTime(0);
+        // 把下一次执行时间置为0了
+        xxlJobInfo.setTriggerNextTime(0);
+        xxlJobInfo.setUpdateTime(new Date());
+        xxlJobInfoMapper.update(xxlJobInfo);
+        return Result.SUCCESS;
+    }
 }

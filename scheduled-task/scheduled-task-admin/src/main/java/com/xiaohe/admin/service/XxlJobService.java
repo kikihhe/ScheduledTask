@@ -26,4 +26,6 @@ public interface XxlJobService {
     public Result<Map<String,Object>> chartInfo(Date startDate, Date endDate);
 
     public Result<String> start(int id);
+
+    public Result<String> stop(int id);
 }

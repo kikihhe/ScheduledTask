@@ -99,4 +99,14 @@ public interface XxlJobLogMapper {
     public Map<String, Object> findLogReport(@Param("from")Date from,
                                              @Param("to") Date to);
 
+    public int pageListCount(@Param("offset") int offset,
+                             @Param("pagesize") int pagesize,
+                             @Param("jobGroup") int jobGroup,
+                             @Param("jobId") int jobId,
+                             @Param("triggerTimeStart") Date triggerTimeStart,
+                             @Param("triggerTimeEnd") Date triggerTimeEnd,
+                             @Param("logStatus") int logStatus);
+    public XxlJobLog load(@Param("id") long id);
+
+
 }

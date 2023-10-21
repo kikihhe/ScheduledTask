@@ -3,6 +3,7 @@ package com.xiaohe.admin.core.thread;
 import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
+import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
 import com.xiaohe.core.util.CollectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +85,7 @@ public class JobFailMonitorHelper {
             XxlJobInfo info = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().loadById(failJobLog.getJobId());
             // 如果这个失败的任务还有重试机会，那就继续调用
             if (failJobLog.getExecutorFailRetryCount() > 0) {
-                // TODO 失败任务重试调用
+                JobTriggerPoolHelper.trigger(failJobLog.getJobId(), TriggerTypeEnum.RETRY, (failJobLog.getExecutorFailRetryCount()-1), failJobLog.getExecutorShardingParam(), failJobLog.getExecutorParam(), null);
             }
             int newAlarmStatus = 0;
             if (info != null) {
