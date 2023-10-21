@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -283,5 +284,52 @@ public class JobScheduleHelper {
             return new Date(fromTime.getTime() + Integer.valueOf(jobInfo.getScheduleConf()) * 1000);
         }
         return null;
+    }
+
+    public void toStop() {
+        scheduleThreadToStop = true;
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        if (scheduleThread.getState() != Thread.State.TERMINATED) {
+            scheduleThread.interrupt();
+            try {
+                scheduleThread.join();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        boolean hasRingData = false;
+        for (Integer second : ringData.keySet()) {
+            List<Integer> tmpData = ringData.get(second);
+            if(!CollectionUtil.isEmpty(tmpData)) {
+                hasRingData = true;
+                break;
+            }
+        }
+        if (hasRingData) {
+            try {
+                TimeUnit.SECONDS.sleep(8);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        ringThreadToStop = true;
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage(), e);
+        }
+        if (ringThread.getState() != Thread.State.TERMINATED) {
+            ringThread.interrupt();
+            try {
+                ringThread.join();
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+            }
+        }
+        logger.info(">>>>>>>>>>> xxl-job, JobScheduleHelper stop");
     }
 }
