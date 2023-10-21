@@ -11,6 +11,7 @@
     <modules>
         <module>scheduled-task-core</module>
         <module>scheduled-task-admin</module>
+        <module>scheduled-task-sample</module>
     </modules>
 
 
