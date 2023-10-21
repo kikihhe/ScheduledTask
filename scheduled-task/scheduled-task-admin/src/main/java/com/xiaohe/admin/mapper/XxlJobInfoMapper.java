@@ -43,4 +43,7 @@ public interface XxlJobInfoMapper {
                              @Param("jobDesc") String jobDesc,
                              @Param("executorHandler") String executorHandler,
                              @Param("author") String author);
+
+
+    public int update(XxlJobInfo xxlJobInfo);
 }

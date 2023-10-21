@@ -5,11 +5,14 @@ import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLogReport;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
+import com.xiaohe.admin.core.thread.JobScheduleHelper;
 import com.xiaohe.admin.mapper.*;
 import com.xiaohe.admin.service.XxlJobService;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.DateUtil;
 import com.xiaohe.core.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -22,6 +25,8 @@ import java.util.*;
  */
 @Service
 public class XxlJobServiceImpl implements XxlJobService {
+
+    private static Logger logger = LoggerFactory.getLogger(XxlJobServiceImpl.class);
     @Resource
     private XxlJobInfoMapper xxlJobInfoMapper;
 
@@ -36,7 +41,6 @@ public class XxlJobServiceImpl implements XxlJobService {
 
     @Resource
     private XxlJobLogReportMapper xxlJobLogReportMapper;
-
 
 
     @Override
@@ -136,9 +140,9 @@ public class XxlJobServiceImpl implements XxlJobService {
         }
         Set<String> executorAddressSet = new HashSet<String>();
         List<XxlJobGroup> groupList = xxlJobGroupMapper.findAll();
-        if (groupList!=null && !groupList.isEmpty()) {
-            for (XxlJobGroup group: groupList) {
-                if (group.getRegistryList()!=null && !group.getRegistryList().isEmpty()) {
+        if (groupList != null && !groupList.isEmpty()) {
+            for (XxlJobGroup group : groupList) {
+                if (group.getRegistryList() != null && !group.getRegistryList().isEmpty()) {
                     executorAddressSet.addAll(group.getRegistryList());
                 }
             }
@@ -162,8 +166,8 @@ public class XxlJobServiceImpl implements XxlJobService {
         int triggerCountSucTotal = 0;
         int triggerCountFailTotal = 0;
         List<XxlJobLogReport> logReportList = xxlJobLogReportMapper.queryLogReport(startDate, endDate);
-        if (logReportList!=null && logReportList.size()>0) {
-            for (XxlJobLogReport item: logReportList) {
+        if (logReportList != null && logReportList.size() > 0) {
+            for (XxlJobLogReport item : logReportList) {
                 String day = DateUtil.formatDate(item.getTriggerDay());
                 int triggerDayCountRunning = item.getRunningCount();
                 int triggerDayCountSuc = item.getSucCount();
@@ -176,8 +180,7 @@ public class XxlJobServiceImpl implements XxlJobService {
                 triggerCountSucTotal += triggerDayCountSuc;
                 triggerCountFailTotal += triggerDayCountFail;
             }
-        }
-        else {
+        } else {
             for (int i = -6; i <= 0; i++) {
                 triggerDayList.add(DateUtil.formatDate(DateUtil.addDays(new Date(), i)));
                 triggerDayCountRunningList.add(0);
@@ -194,6 +197,41 @@ public class XxlJobServiceImpl implements XxlJobService {
         result.put("triggerCountSucTotal", triggerCountSucTotal);
         result.put("triggerCountFailTotal", triggerCountFailTotal);
         return Result.success(result);
+    }
+
+    /**
+     * 启动定时任务，这里启动定时任务，其实就是计算出最新的定时任务可以被调度的时间 至于怎么被调度，最有线程去做这件事
+     */
+    @Override
+    public Result<String> start(int id) {
+        //得到定时任务
+        XxlJobInfo xxlJobInfo = xxlJobInfoMapper.loadById(id);
+        //得到调度类型
+        ScheduleTypeEnum scheduleTypeEnum = ScheduleTypeEnum.match(xxlJobInfo.getScheduleType(), ScheduleTypeEnum.NONE);
+        if (ScheduleTypeEnum.NONE == scheduleTypeEnum) {
+            //调度类型为空，就是什么也不使用，就什么都不做，不调度该任务
+            return new Result<String>(Result.FAIL_CODE, ("schedule_type_none_limit_start"));
+        }
+        long nextTriggerTime = 0;
+        try {
+            // 得到该定时任务5秒之后的执行时间，这里之所以要得到5秒之后，是因为调度定时任务的线程，刚开始执行的时候会睡4到5秒
+            Date nextValidTime = JobScheduleHelper.generateNextValidTime(xxlJobInfo, new Date(System.currentTimeMillis() + JobScheduleHelper.PRE_READ_MS));
+            if (nextValidTime == null) {
+                return new Result<String>(Result.FAIL_CODE, "schedule_type" + "system_unvalid");
+            }
+            //下一次执行时间赋值
+            nextTriggerTime = nextValidTime.getTime();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return new Result<>(Result.FAIL_CODE, "schedule_type" + "system_unvalid");
+        }
+        //修改定时任务的运行状态，改为运行
+        xxlJobInfo.setTriggerStatus(1);
+        xxlJobInfo.setTriggerLastTime(0);
+        xxlJobInfo.setTriggerNextTime(nextTriggerTime);
+        xxlJobInfo.setUpdateTime(new Date());
+        xxlJobInfoMapper.update(xxlJobInfo);
+        return Result.SUCCESS;
     }
 
 }

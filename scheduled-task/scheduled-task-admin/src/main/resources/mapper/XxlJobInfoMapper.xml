@@ -207,4 +207,32 @@
         </trim>
     </select>
 
+    <update id="update" parameterType="com.xiaohe.admin.core.model.XxlJobInfo" >
+        UPDATE xxl_job_info
+        SET
+            job_group = #{jobGroup},
+            job_desc = #{jobDesc},
+            update_time = #{updateTime},
+            author = #{author},
+            alarm_email = #{alarmEmail},
+            schedule_type = #{scheduleType},
+            schedule_conf = #{scheduleConf},
+            misfire_strategy = #{misfireStrategy},
+            executor_route_strategy = #{executorRouteStrategy},
+            executor_handler = #{executorHandler},
+            executor_param = #{executorParam},
+            executor_block_strategy = #{executorBlockStrategy},
+            executor_timeout = ${executorTimeout},
+            executor_fail_retry_count = ${executorFailRetryCount},
+            glue_type = #{glueType},
+            glue_source = #{glueSource},
+            glue_remark = #{glueRemark},
+            glue_updatetime = #{glueUpdatetime},
+            child_jobid = #{childJobId},
+            trigger_status = #{triggerStatus},
+            trigger_last_time = #{triggerLastTime},
+            trigger_next_time = #{triggerNextTime}
+        WHERE id = #{id}
+    </update>
+
 </mapper>
