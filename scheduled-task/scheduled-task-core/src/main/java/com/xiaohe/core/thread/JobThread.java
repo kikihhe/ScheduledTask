@@ -231,7 +231,13 @@ public class JobThread extends Thread {
     private void doExecute(TriggerParam triggerParam, XxlJobContext xxlJobContext) throws Exception {
         // 没有设置超时时间，直接执行，设置了超时时间，开启子线程执行，此线程监督子线程执行
         if (triggerParam.getExecutorTimeout() == 0) {
-            handler.execute();
+            try {
+                handler.execute();
+            } catch (Exception e) {
+                XxlJobHelper.log("<br>-------------- xxl-job job execute timeout");
+                XxlJobHelper.log(e);
+                XxlJobHelper.handleFail("job execute fail, exception message: " + e.getMessage());
+            }
         } else {
             Thread futureThread = null;
             try {
