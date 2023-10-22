@@ -1,5 +1,6 @@
 package com.xiaohe.core.util;
 
+
 import com.xiaohe.core.model.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,43 +8,24 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
- * @author : 小何
- * @Description : 发送HTTP请求的工具类
- * @date : 2023-09-21 12:46
+ * xxl-job用于远程调用的工具类
  */
 public class XxlJobRemotingUtil {
+
     private static Logger logger = LoggerFactory.getLogger(XxlJobRemotingUtil.class);
 
     public static final String XXL_JOB_ACCESS_TOKEN = "XXL-JOB-ACCESS-TOKEN";
 
-    private static final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-        @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[]{};
-        }
-    }};
 
     /**
-     * 信任该HTTPS链接
-     *
-     * @param connection
+     * 信任该http链接
      */
     private static void trustAllHosts(HttpsURLConnection connection) {
         try {
@@ -54,28 +36,42 @@ public class XxlJobRemotingUtil {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        connection.setHostnameVerifier((hostname, sslSession) -> {
-            return true;
+        connection.setHostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
         });
     }
 
 
+    private static final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[]{};
+        }
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        }
+    }};
+
+
     /**
-     * 发送post请求
-     * @param url 目标url
-     * @param accessToken token
-     * @param timeout 超时时间
-     * @param requestObj 请求体中携带的数据
-     * @param returnTargClassOfT 响应中的标签的类型，一般不用。
-     * @return Result
+     * 发送post消息
      */
     public static Result postBody(String url, String accessToken, int timeout, Object requestObj, Class returnTargClassOfT) {
         HttpURLConnection connection = null;
         BufferedReader bufferedReader = null;
         try {
+            //创建链接
             URL realUrl = new URL(url);
             connection = (HttpURLConnection) realUrl.openConnection();
-            if (url.startsWith("https")) {
+            //判断是不是https开头的
+            boolean useHttps = url.startsWith("https");
+            if (useHttps) {
                 HttpsURLConnection https = (HttpsURLConnection) connection;
                 trustAllHosts(https);
             }
@@ -84,42 +80,54 @@ public class XxlJobRemotingUtil {
             connection.setDoInput(true);
             connection.setUseCaches(false);
             connection.setReadTimeout(timeout * 1000);
-            connection.setConnectTimeout(3000);
+            connection.setConnectTimeout(3 * 1000);
             connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
             connection.setRequestProperty("Accept-Charset", "application/json;charset=UTF-8");
-            if (StringUtil.hasText(accessToken)) {
+            //判断令牌是否为空
+            if(accessToken!=null && accessToken.trim().length()>0){
+                //设置令牌，以键值对的形式，键就是该类的静态成员变量
                 connection.setRequestProperty(XXL_JOB_ACCESS_TOKEN, accessToken);
             }
-            // 连接
+            //进行连接
             connection.connect();
-            // 发送请求
             if (requestObj != null) {
+                //序列化请求体，也就是要发送的触发器参数
                 String requestBody = JsonUtil.writeValueAsString(requestObj);
+                //下面就开始正式发送消息了
                 DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
-                dataOutputStream.write(requestBody.getBytes(StandardCharsets.UTF_8));
+                dataOutputStream.write(requestBody.getBytes("UTF-8"));
+                //刷新缓冲区
                 dataOutputStream.flush();
+                //释放资源
                 dataOutputStream.close();
             }
-            // 获取响应
-            int responseCode = connection.getResponseCode();
-            // 如果响应码不是200，返回错误结果
-            if (responseCode != 200) {
-                return new Result<String>(Result.FAIL_CODE, "xxl-job remoting fail, response code(" + responseCode + "), invalid for url: " + url);
+            //获取响应码
+            int statusCode = connection.getResponseCode();
+            if (statusCode != 200) {
+                //设置失败结果
+                return new Result<String>(Result.FAIL_CODE, "xxl-job remoting fail, StatusCode("+ statusCode +") invalid. for url : " + url);
             }
-            // 响应成功，读取响应信息
-            bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+            bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
             StringBuilder result = new StringBuilder();
-            String line = null;
+            String line;
+            //接收返回信息
             while ((line = bufferedReader.readLine()) != null) {
                 result.append(line);
             }
+            //转换为字符串
             String resultJson = result.toString();
-            return JsonUtil.readValue(resultJson, Result.class);
-
+            try {
+                //转换为ReturnT对象，返回给用户
+                Result returnT = JsonUtil.readValue(resultJson, Result.class, returnTargClassOfT);
+                return returnT;
+            } catch (Exception e) {
+                logger.error("xxl-job remoting (url="+url+") response content invalid("+ resultJson +").", e);
+                return new Result<String>(Result.FAIL_CODE, "xxl-job remoting (url="+url+") response content invalid("+ resultJson +").");
+            }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return new Result<String>(Result.FAIL_CODE, "xxl-job remoting error(" + e.getMessage() + "), for url : " + url);
+            return new Result<String>(Result.FAIL_CODE, "xxl-job remoting error("+ e.getMessage() +"), for url : " + url);
         } finally {
             try {
                 if (bufferedReader != null) {
@@ -128,12 +136,10 @@ public class XxlJobRemotingUtil {
                 if (connection != null) {
                     connection.disconnect();
                 }
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
+            } catch (Exception e2) {
+                logger.error(e2.getMessage(), e2);
             }
         }
     }
+
 }
-
-
-

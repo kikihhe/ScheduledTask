@@ -115,13 +115,13 @@
 
     <select id="findClearJobLog" resultType="java.lang.Long">
         select t.id
-        from xxl_job_log as
+        from xxl_job_log as t
         <where>
             <if test="jobGroup != null">
-                and `jobGroup` = #{jobGroup}
+                and t.`job_group` = #{jobGroup}
             </if>
             <if test="jobId > 0">
-                and `jobId` = #{jobId}
+                and t.`job_id` = #{jobId}
             </if>
             <if test="clearBeforeTime != null">
                 and `trigger_time` <![CDATA[ <= ]]> #{clearBeforeTime}
@@ -133,13 +133,13 @@
                 select id from xxl_job_log as t
                 <where>
                     <if test="jobGroup gt 0">
-                        and t.job_group = #{jobGroup}
+                        and t.`job_group` = #{jobGroup}
                     </if>
                     <if test="jobId gt 0">
-                        and t.job_id = #{jobId}
+                        and t.`job_id` = #{jobId}
                     </if>
                 </where>
-                order by t.trigger_time desc
+                order by t.`trigger_time` desc
                 limit 0, #{clearBeforeNum}
                 ) t1
                 )
@@ -166,7 +166,7 @@
     <select id="findFailJobLogs" resultType="com.xiaohe.admin.core.model.XxlJobLog">
         select
         <include refid="Base_Column_List"/>
-        from `xxl_job_log`
+        from `xxl_job_log` t
         where !(
             (trigger_code in (0, 200) and handle_code = 0)
             or
@@ -209,14 +209,17 @@
     </update>
 
 <!--    -->
-    <select id="findLostJobIds" resultType="java.lang.Long">
-        select id
-        from xxl_job_log log
-                 left join xxl_job_registry registry on log.executor_address = registry.registry_value
-        where log.trigger_code = 200
-          and log.handle_code = 0
-          andt.trigger_time <![CDATA[ <= ]]> #{losedTime}
-        and registry.id is null;
+    <select id="findLostJobIds" resultType="long" >
+        SELECT
+            t.id
+        FROM
+            xxl_job_log t
+                LEFT JOIN xxl_job_registry t2 ON t.executor_address = t2.registry_value
+        WHERE
+            t.trigger_code = 200
+          AND t.handle_code = 0
+          AND t.trigger_time <![CDATA[ <= ]]> #{losedTime}
+          AND t2.id IS NULL;
     </select>
 
     <select id="findLogReport" resultType="java.util.Map">
@@ -225,7 +228,7 @@
             sum(CASE WHEN (trigger_code in (0, 200) and handle_code = 0) then 1 else 0 end) as triggerDayCountRunning,
             sum(case when (handle_code = 200) then 1 else 0 end) as triggerDayCountSuc
         from xxl_job_log
-        where triggeer_time between #{from} and #{to};
+        where trigger_time between #{from} and #{to};
     </select>
 
     <select id="pageListCount" resultType="int">

@@ -168,4 +168,22 @@ public class TriggerParam implements Serializable {
     public void setBroadcastTotal(int broadcastTotal) {
         this.broadcastTotal = broadcastTotal;
     }
+
+    @Override
+    public String toString() {
+        return "TriggerParam{" +
+                "jobId=" + jobId +
+                ", executorHandler='" + executorHandler + '\'' +
+                ", executorParams='" + executorParams + '\'' +
+                ", executorBlockStrategy='" + executorBlockStrategy + '\'' +
+                ", executorTimeout=" + executorTimeout +
+                ", logId=" + logId +
+                ", logDateTime=" + logDateTime +
+                ", glueType='" + glueType + '\'' +
+                ", glueSource='" + glueSource + '\'' +
+                ", glueUpdatetime=" + glueUpdatetime +
+                ", broadcastIndex=" + broadcastIndex +
+                ", broadcastTotal=" + broadcastTotal +
+                '}';
+    }
 }

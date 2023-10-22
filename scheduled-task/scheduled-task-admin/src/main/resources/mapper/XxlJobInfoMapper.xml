@@ -166,7 +166,7 @@
         select <include refid="Base_Column_List"/>
         from xxl_job_info t
         where t.trigger_status = 1
-        and t.trigger_next_time <![CDATA[ <= ]]]> #{maxNextTime}
+        and t.trigger_next_time <![CDATA[ <= ]]> #{maxNextTime}
         order by id asc
         limit #{maxCount}
     </select>
@@ -175,7 +175,7 @@
             update xxl_job_info t
             set
                 t.`trigger_last_time` = #{xxlJob.triggerLastTime},
-                t.`trigger_next_time` = #{xxlJob.triggerNextTime}
+                t.`trigger_next_time` = #{xxlJob.triggerNextTime},
             where id = #{xxlJob.id}
         </foreach>
     </update>

@@ -105,7 +105,9 @@ public class JobRegistryHelper {
                         group.setAddressList(addressListStr);
                         group.setUpdateTime(new Date());
                     }
-                    XxlJobAdminConfig.getAdminConfig().getXxlJobGroupMapper().updateBatch(groupList);
+                    if (!groupList.isEmpty()) {
+                        XxlJobAdminConfig.getAdminConfig().getXxlJobGroupMapper().updateBatch(groupList);
+                    }
                 }
                 //线程在这里睡30秒，也就意味着检测周期为30秒
                 try {

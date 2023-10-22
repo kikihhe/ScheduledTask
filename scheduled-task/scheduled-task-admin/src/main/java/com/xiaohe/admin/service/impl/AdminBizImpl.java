@@ -6,6 +6,7 @@ import com.xiaohe.core.biz.AdminBiz;
 import com.xiaohe.core.model.HandlerCallbackParam;
 import com.xiaohe.core.model.RegistryParam;
 import com.xiaohe.core.model.Result;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
  * @Description : 由JobApiController调用，处理从
  * @date : 2023-10-14 19:11
  */
+@Service
 public class AdminBizImpl implements AdminBiz {
     @Override
     public Result callback(List<HandlerCallbackParam> callbackParamList) {

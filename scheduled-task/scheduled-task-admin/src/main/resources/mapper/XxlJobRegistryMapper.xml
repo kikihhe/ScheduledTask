@@ -20,10 +20,15 @@
     </sql>
 
 
-    <select id="findDead" resultType="java.lang.Integer">
-        select t.id
-        from xxl_job_registry t
-        where t.`update_time` <![CDATA[ < ]]> DATEADD(#{nowTime}, interval -#{timeout} second)
+<!--    <select id="findDead" resultType="java.lang.Integer">-->
+<!--        select t.id-->
+<!--        from xxl_job_registry t-->
+<!--        where t.`update_time` <![CDATA[ < ]]> DATEADD(#{nowTime}, interval -#{timeout} second)-->
+<!--    </select>-->
+    <select id="findDead" parameterType="java.util.HashMap" resultType="java.lang.Integer" >
+        SELECT t.id
+        FROM xxl_job_registry AS t
+        WHERE t.update_time <![CDATA[ < ]]> DATE_ADD(#{nowTime},INTERVAL -#{timeout} SECOND)
     </select>
 
     <delete id="removeDead" parameterType="java.lang.Integer">
@@ -37,7 +42,7 @@
     <select id="findAll" resultType="com.xiaohe.admin.core.model.XxlJobRegistry">
         select <include refid="Base_Column_List"/>
         from xxl_job_registry t
-        where t.update_time <![CDATA[ > ]]> DATEADD(#{nowTime}, interval -#{timeout} second)
+        where t.update_time <![CDATA[ > ]]> DATE_ADD(#{nowTime}, interval -#{timeout} second)
     </select>
     <delete id="registryDelete">
         delete from xxl_job_registry

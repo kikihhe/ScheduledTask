@@ -71,4 +71,14 @@ public class LogResult implements Serializable {
     public void setEnd(boolean end) {
         isEnd = end;
     }
+
+    @Override
+    public String toString() {
+        return "LogResult{" +
+                "fromLineNum=" + fromLineNum +
+                ", toLineNum=" + toLineNum +
+                ", logContent='" + logContent + '\'' +
+                ", isEnd=" + isEnd +
+                '}';
+    }
 }

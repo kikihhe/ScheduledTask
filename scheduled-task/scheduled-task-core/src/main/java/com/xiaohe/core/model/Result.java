@@ -86,4 +86,13 @@ public class Result<T> implements Serializable {
     public void setContent(T content) {
         this.content = content;
     }
+
+    @Override
+    public String toString() {
+        return "Result{" +
+                "code=" + code +
+                ", message='" + message + '\'' +
+                ", content=" + content +
+                '}';
+    }
 }

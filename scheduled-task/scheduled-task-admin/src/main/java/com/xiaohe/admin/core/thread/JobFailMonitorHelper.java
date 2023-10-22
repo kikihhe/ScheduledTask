@@ -4,6 +4,7 @@ import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
 import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.util.CollectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,11 +82,16 @@ public class JobFailMonitorHelper {
             if (lockRet < 1) {
                 continue;
             }
-            //
+            // 再查一次
+            failJobLog = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().load(failJobLog.getId());
             XxlJobInfo info = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().loadById(failJobLog.getJobId());
             // 如果这个失败的任务还有重试机会，那就继续调用
             if (failJobLog.getExecutorFailRetryCount() > 0) {
                 JobTriggerPoolHelper.trigger(failJobLog.getJobId(), TriggerTypeEnum.RETRY, (failJobLog.getExecutorFailRetryCount()-1), failJobLog.getExecutorShardingParam(), failJobLog.getExecutorParam(), null);
+                String retryMsg = "<br><br><span style=\"color:#F39C12;\" > >>>>>>>>>>>"+ I18nUtil.getString("jobconf_trigger_type_retry") +"<<<<<<<<<<< </span><br>";
+                failJobLog.setTriggerMsg(failJobLog.getTriggerMsg() + retryMsg);
+                //跟新数据库的信息，就是把XxlJobLog更新一下，因为这个定时任务的日志中记录了失败重试的信息
+                XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().updateTriggerInfo(failJobLog);
             }
             int newAlarmStatus = 0;
             if (info != null) {

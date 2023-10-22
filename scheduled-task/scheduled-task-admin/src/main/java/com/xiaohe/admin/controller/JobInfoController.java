@@ -8,6 +8,7 @@ import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
 import com.xiaohe.admin.core.thread.JobScheduleHelper;
 import com.xiaohe.admin.core.thread.JobTriggerPoolHelper;
 import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.admin.mapper.XxlJobGroupMapper;
 import com.xiaohe.admin.service.XxlJobService;
 import com.xiaohe.core.enums.ExecutorBlockStrategyEnum;
@@ -50,10 +51,10 @@ public class JobInfoController {
         model.addAttribute("ExecutorBlockStrategyEnum", ExecutorBlockStrategyEnum.values());
         model.addAttribute("ScheduleTypeEnum", ScheduleTypeEnum.values());
         model.addAttribute("MisfireStrategyEnum", MisfireStrategyEnum.values());
-        List<XxlJobGroup> jobGroupList_all = xxlJobGroupMapper.findAll();
+        List<XxlJobGroup> jobGroupList_all =  xxlJobGroupMapper.findAll();
         List<XxlJobGroup> jobGroupList = filterJobGroupByRole(request, jobGroupList_all);
-        if (jobGroupList == null || jobGroupList.size() == 0) {
-            throw new RuntimeException("jobgroup_empty");
+        if (jobGroupList==null || jobGroupList.size()==0) {
+            throw new RuntimeException(I18nUtil.getString("jobgroup_empty"));
         }
         model.addAttribute("JobGroupList", jobGroupList);
         model.addAttribute("jobGroup", jobGroup);
@@ -92,7 +93,7 @@ public class JobInfoController {
     public static void validPermission(HttpServletRequest request, int jobGroup) {
         XxlJobUser loginUser = (XxlJobUser) request.getAttribute(LoginService.LOGIN_IDENTITY_KEY);
         if (!loginUser.validPermission(jobGroup)) {
-            throw new RuntimeException("system_permission_limit" + "[username=" + loginUser.getUsername() + "]");
+            throw new RuntimeException(I18nUtil.getString("system_permission_limit") + "[username=" + loginUser.getUsername() + "]");
         }
     }
 
@@ -197,7 +198,7 @@ public class JobInfoController {
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return new Result<List<String>>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid") + e.getMessage());
+            return new Result<List<String>>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type")+I18nUtil.getString("system_unvalid")) + e.getMessage());
         }
         return new Result<List<String>>(result);
     }

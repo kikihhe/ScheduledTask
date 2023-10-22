@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
+import java.util.Arrays;
 
 /**
  * @author : 小何
@@ -57,6 +58,8 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
 
     // ---------------------------在配置文件中配的内容---------------------------------------------------------
+    @Value("${xxl.job.i18n}")
+    private String i18n;
 
     @Value("${xxl.job.accessToken}")
     private String accessToken;
@@ -190,7 +193,12 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     public XxlJobGroupMapper getXxlJobGroupMapper() {
         return xxlJobGroupMapper;
     }
-
+    public String getI18n() {
+        if (!Arrays.asList("zh_CN", "zh_TC", "en").contains(i18n)) {
+            return "zh_CN";
+        }
+        return i18n;
+    }
     public void setXxlJobGroupMapper(XxlJobGroupMapper xxlJobGroupMapper) {
         this.xxlJobGroupMapper = xxlJobGroupMapper;
     }

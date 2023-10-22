@@ -26,4 +26,11 @@ public class IdleBeatParam implements Serializable {
     public void setJobId(int jobId) {
         this.jobId = jobId;
     }
+
+    @Override
+    public String toString() {
+        return "IdleBeatParam{" +
+                "jobId=" + jobId +
+                '}';
+    }
 }

@@ -3,6 +3,7 @@ package com.xiaohe.admin.core.thread;
 import com.xiaohe.admin.core.complete.XxlJobCompleter;
 import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobLog;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.model.HandlerCallbackParam;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.DateUtil;
@@ -69,7 +70,7 @@ public class JobCompleteHelper {
                     xxlJobLog.setId(lostJobId);
                     xxlJobLog.setHandleTime(new Date());
                     xxlJobLog.setHandlerCode(Result.FAIL_CODE);
-                    xxlJobLog.setHandleMsg("joblog_lost_fail");
+                    xxlJobLog.setHandleMsg( I18nUtil.getString("joblog_lost_fail") );
                     XxlJobCompleter.updateHandleInfoAndFinish(xxlJobLog);
                 }
                 // 一分钟扫描一次

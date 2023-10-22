@@ -5,6 +5,7 @@ import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.model.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+
 /**
  * @author : 小何
  * @Description : 通过邮件的方式告警
@@ -25,8 +27,10 @@ public class EmailJobAlarm implements JobAlarm {
 
     private static Logger logger = LoggerFactory.getLogger(EmailJobAlarm.class);
 
-    String personal = "admin_name_full";
-    String title = "jobconf_monitor";
+    //设置报警信息的发送者
+    String personal = I18nUtil.getString("admin_name_full");
+    //设置报警信息的标题
+    String title = I18nUtil.getString("jobconf_monitor");
     @Override
     public boolean doAlarm(XxlJobInfo xxlJobInfo, XxlJobLog xxlJobLog) {
         boolean alarmResult = true;
@@ -77,16 +81,16 @@ public class EmailJobAlarm implements JobAlarm {
     /**
      * 邮箱模板
      */
-    private static final String loadEmailJobAlarmTemplate() {
-        String mailBodyTemplate = "<h5>" + "jobconf_monitor_detail" + "：</span>" +
+    private static final String loadEmailJobAlarmTemplate(){
+        String mailBodyTemplate = "<h5>" + I18nUtil.getString("jobconf_monitor_detail") + "：</span>" +
                 "<table border=\"1\" cellpadding=\"3\" style=\"border-collapse:collapse; width:80%;\" >\n" +
                 "   <thead style=\"font-weight: bold;color: #ffffff;background-color: #ff8c00;\" >" +
                 "      <tr>\n" +
-                "         <td width=\"20%\" >" + "jobinfo_field_jobgroup" + "</td>\n" +
-                "         <td width=\"10%\" >" + "jobinfo_field_id" + "</td>\n" +
-                "         <td width=\"20%\" >" + "jobinfo_field_jobdesc" + "</td>\n" +
-                "         <td width=\"10%\" >" + "jobconf_monitor_alarm_title" + "</td>\n" +
-                "         <td width=\"40%\" >" + "jobconf_monitor_alarm_content" + "</td>\n" +
+                "         <td width=\"20%\" >"+ I18nUtil.getString("jobinfo_field_jobgroup") +"</td>\n" +
+                "         <td width=\"10%\" >"+ I18nUtil.getString("jobinfo_field_id") +"</td>\n" +
+                "         <td width=\"20%\" >"+ I18nUtil.getString("jobinfo_field_jobdesc") +"</td>\n" +
+                "         <td width=\"10%\" >"+ I18nUtil.getString("jobconf_monitor_alarm_title") +"</td>\n" +
+                "         <td width=\"40%\" >"+ I18nUtil.getString("jobconf_monitor_alarm_content") +"</td>\n" +
                 "      </tr>\n" +
                 "   </thead>\n" +
                 "   <tbody>\n" +
@@ -94,7 +98,7 @@ public class EmailJobAlarm implements JobAlarm {
                 "         <td>{0}</td>\n" +
                 "         <td>{1}</td>\n" +
                 "         <td>{2}</td>\n" +
-                "         <td>" + "jobconf_monitor_alarm_type" + "</td>\n" +
+                "         <td>"+ I18nUtil.getString("jobconf_monitor_alarm_type") +"</td>\n" +
                 "         <td>{3}</td>\n" +
                 "      </tr>\n" +
                 "   </tbody>\n" +

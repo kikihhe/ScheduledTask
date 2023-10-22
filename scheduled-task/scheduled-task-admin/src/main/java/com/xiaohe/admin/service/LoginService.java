@@ -3,6 +3,7 @@ package com.xiaohe.admin.service;
 
 import com.xiaohe.admin.core.model.XxlJobUser;
 import com.xiaohe.admin.core.util.CookieUtil;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.admin.mapper.XxlJobUserMapper;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.JsonUtil;
@@ -109,19 +110,16 @@ public class LoginService {
      */
     public Result login(HttpServletRequest request, HttpServletResponse response,
                                 String username, String password, boolean ifRemember) {
-        if (!StringUtil.hasText(username) || username.trim().length() < 4 || username.trim().length() > 20) {
-            return Result.error("用户名不符合格式");
-        }
-        if (!StringUtil.hasText(password) || password.trim().length() < 4 || password.trim().length() > 20) {
-            return Result.error("密码不符合格式");
+        if (username==null || username.trim().length()==0 || password==null || password.trim().length()==0){
+            return new Result<String>(500, I18nUtil.getString("login_param_empty"));
         }
         XxlJobUser xxlJobUser = xxlJobUserMapper.loadByUsername(username);
         if (xxlJobUser == null) {
-            return Result.error("用户名/密码错误", new XxlJobUser().setUsername(username).setPassword(password));
+            return new Result<String>(500, I18nUtil.getString("login_param_unvalid"));
         }
-        String passwordMd5 = DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
+        String passwordMd5 = DigestUtils.md5DigestAsHex(password.getBytes());
         if (!passwordMd5.equals(xxlJobUser.getPassword())) {
-            return Result.error("用户名/密码错误", new XxlJobUser().setUsername(username).setPassword(password));
+            return new Result<String>(500, I18nUtil.getString("login_param_unvalid"));
         }
         // 如果登录成功，生成token，存入response返回给前端
         String token = makeToken(xxlJobUser);

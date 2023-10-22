@@ -2,8 +2,10 @@ package com.xiaohe.admin.core.scheduler;
 
 import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.thread.*;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.biz.ExecutorBiz;
 import com.xiaohe.core.biz.client.ExecutorBizClient;
+import com.xiaohe.core.enums.ExecutorBlockStrategyEnum;
 import com.xiaohe.core.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ public class XxlJobScheduler {
     private static ConcurrentHashMap<String, ExecutorBiz> executorBizRepository = new ConcurrentHashMap<>();
 
     public void start() {
+        initI18n();
         // 快慢线程池
         JobTriggerPoolHelper.toStart();
 
@@ -73,5 +76,9 @@ public class XxlJobScheduler {
     }
 
 
-
+    private void initI18n(){
+        for (ExecutorBlockStrategyEnum item: ExecutorBlockStrategyEnum.values()) {
+            item.setTitle(I18nUtil.getString("jobconf_block_".concat(item.name())));
+        }
+    }
 }

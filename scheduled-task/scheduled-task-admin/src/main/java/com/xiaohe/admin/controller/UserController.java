@@ -1,8 +1,10 @@
 package com.xiaohe.admin.controller;
 
+
 import com.xiaohe.admin.controller.annotation.PermissionLimit;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobUser;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.admin.mapper.XxlJobGroupMapper;
 import com.xiaohe.admin.mapper.XxlJobUserMapper;
 import com.xiaohe.admin.service.LoginService;
@@ -11,144 +13,141 @@ import com.xiaohe.core.util.StringUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @author : 小何
- * @Description :
- * @date : 2023-09-22 15:02
+ * 对应的是用户管理界面
  */
 @Controller
 @RequestMapping("/user")
 public class UserController {
-    @Resource
-    private XxlJobGroupMapper xxlJobGroupMapper;
 
     @Resource
-    private XxlJobUserMapper xxlJobUserMapper;
+    private XxlJobUserMapper xxlJobUserDao;
+    @Resource
+    private XxlJobGroupMapper xxlJobGroupDao;
+
 
     @RequestMapping
     @PermissionLimit(adminuser = true)
     public String index(Model model) {
-        List<XxlJobGroup> all = xxlJobGroupMapper.findAll();
-        model.addAttribute("groupList", all);
+        List<XxlJobGroup> groupList = xxlJobGroupDao.findAll();
+        model.addAttribute("groupList", groupList);
         return "user/user.index";
     }
 
-    /**
-     * 分页查询用户
-     * @param start
-     * @param length
-     * @param username
-     * @param role
-     * @return
-     */
+
     @RequestMapping("/pageList")
     @ResponseBody
     @PermissionLimit(adminuser = true)
     public Map<String, Object> pageList(@RequestParam(required = false, defaultValue = "0") int start,
                                         @RequestParam(required = false, defaultValue = "10") int length,
-                                        String username,
-                                        int role) {
-        List<XxlJobUser> list = xxlJobUserMapper.pageList(start, length, username, role);
-        // 不能将密码返回前端
-        list.forEach(user -> {user.setPassword(null);});
-        Map<String, Object> map = new HashMap<>();
-        map.put("recordsTotal", list.size());
-        map.put("recordsFiltered", list.size());
-        map.put("data", list);
-        return map;
+                                        String username, int role) {
+        List<XxlJobUser> list = xxlJobUserDao.pageList(start, length, username, role);
+        int list_count = list.size();
+        if (list != null && list.size() > 0) {
+            for (XxlJobUser item : list) {
+                item.setPassword(null);
+            }
+        }
+        Map<String, Object> maps = new HashMap<String, Object>();
+        maps.put("recordsTotal", list_count);
+        maps.put("recordsFiltered", list_count);
+        maps.put("data", list);
+        return maps;
     }
 
-    /**
-     * 添加新用户
-     * @param xxlJobUser
-     * @return
-     */
+
     @RequestMapping("/add")
     @ResponseBody
     @PermissionLimit(adminuser = true)
     public Result<String> add(XxlJobUser xxlJobUser) {
-        String username = xxlJobUser.getUsername();
-        String password = xxlJobUser.getPassword();
-        if (!StringUtil.hasText(username) || username.length() < 4 || username.length() > 20) {
-            return new Result<String>(Result.FAIL_CODE, "用户名不符合格式, 不能为空，长度要在4-20之间");
+        if (!StringUtils.hasText(xxlJobUser.getUsername())) {
+            return new Result<String>(Result.FAIL_CODE, I18nUtil.getString("system_please_input") + I18nUtil.getString("user_username"));
         }
-        if (!StringUtil.hasText(password) || password.length() < 4 || password.length() > 20) {
-            return new Result<String>(Result.FAIL_CODE, "密码不符合格式, 不能为空，长度要在4-20之间");
+        xxlJobUser.setUsername(xxlJobUser.getUsername().trim());
+        if (!(xxlJobUser.getUsername().length() >= 4 && xxlJobUser.getUsername().length() <= 20)) {
+            return new Result<String>(Result.FAIL_CODE, I18nUtil.getString("system_lengh_limit") + "[4-20]");
         }
-        xxlJobUser.setUsername(username.trim());
-        xxlJobUser.setPassword(password.trim());
-        XxlJobUser xxlJobUser1 = xxlJobUserMapper.loadByUsername(username);
-        if (xxlJobUser1 != null) {
-            return new Result<String>(Result.FAIL_CODE, "用户:" + username + "已存在，请勿重复添加");
+        if (!StringUtils.hasText(xxlJobUser.getPassword())) {
+            return new Result<String>(Result.FAIL_CODE, I18nUtil.getString("system_please_input") + I18nUtil.getString("user_password"));
         }
-        xxlJobUserMapper.add(xxlJobUser);
+        xxlJobUser.setPassword(xxlJobUser.getPassword().trim());
+        if (!(xxlJobUser.getPassword().length() >= 4 && xxlJobUser.getPassword().length() <= 20)) {
+            return new Result<String>(Result.FAIL_CODE, I18nUtil.getString("system_lengh_limit") + "[4-20]");
+        }
+        xxlJobUser.setPassword(DigestUtils.md5DigestAsHex(xxlJobUser.getPassword().getBytes()));
+        XxlJobUser existUser = xxlJobUserDao.loadByUsername(xxlJobUser.getUsername());
+        if (existUser != null) {
+            return new Result<String>(Result.FAIL_CODE, I18nUtil.getString("user_username_repeat"));
+        }
+        xxlJobUserDao.add(xxlJobUser);
         return Result.SUCCESS;
     }
 
-    /**
-     * 修改某个用户的信息
-     * @param xxlJobUser
-     * @return
-     */
+
     @RequestMapping("/update")
     @ResponseBody
     @PermissionLimit(adminuser = true)
-    public Result<String> update(@RequestBody XxlJobUser xxlJobUser, HttpServletRequest request) {
+    public Result<String> update(HttpServletRequest request, XxlJobUser xxlJobUser) {
         XxlJobUser loginUser = (XxlJobUser) request.getAttribute(LoginService.LOGIN_IDENTITY_KEY);
-        String newPassword = xxlJobUser.getPassword();
-        if (!StringUtil.hasText(newPassword) || newPassword.length() < 4 || newPassword.length() > 20) {
-            return new Result<>(Result.FAIL_CODE, "密码不符合格式");
+        if (loginUser.getUsername().equals(xxlJobUser.getUsername())) {
+            return new Result<String>(Result.FAIL.getCode(), I18nUtil.getString("user_update_loginuser_limit"));
         }
-        xxlJobUser.setPassword(DigestUtils.md5DigestAsHex(xxlJobUser.getPassword().getBytes(StandardCharsets.UTF_8)));
-        xxlJobUserMapper.update(xxlJobUser);
+        if (StringUtils.hasText(xxlJobUser.getPassword())) {
+            xxlJobUser.setPassword(xxlJobUser.getPassword().trim());
+            if (!(xxlJobUser.getPassword().length() >= 4 && xxlJobUser.getPassword().length() <= 20)) {
+                return new Result<String>(Result.FAIL_CODE, I18nUtil.getString("system_lengh_limit") + "[4-20]");
+            }
+            xxlJobUser.setPassword(DigestUtils.md5DigestAsHex(xxlJobUser.getPassword().getBytes()));
+        } else {
+            xxlJobUser.setPassword(null);
+        }
+        xxlJobUserDao.update(xxlJobUser);
         return Result.SUCCESS;
     }
+
 
     @RequestMapping("/remove")
     @ResponseBody
     @PermissionLimit(adminuser = true)
-    public Result<String> remove(int id, HttpServletRequest request) {
-        XxlJobUser xxlJobUser = (XxlJobUser) request.getAttribute(LoginService.LOGIN_IDENTITY_KEY);
-        xxlJobUserMapper.delete(id);
+    public Result<String> remove(HttpServletRequest request, int id) {
+        XxlJobUser loginUser = (XxlJobUser) request.getAttribute(LoginService.LOGIN_IDENTITY_KEY);
+        if (loginUser.getId() == id) {
+            return new Result<String>(Result.FAIL.getCode(), I18nUtil.getString("user_update_loginuser_limit"));
+        }
+
+        xxlJobUserDao.delete(id);
         return Result.SUCCESS;
     }
 
-    /**
-     * 修改密码
-     * @param request
-     * @param password
-     * @return
-     */
+
     @RequestMapping("/updatePwd")
     @ResponseBody
-    public Result<String> updatePassword(HttpServletRequest request, String password) {
+    public Result<String> updatePwd(HttpServletRequest request, String password) {
         if (!StringUtil.hasText(password)) {
-            return new Result<>(Result.FAIL_CODE, "密码不能为空");
+            return new Result<String>(Result.FAIL.getCode(), "密码不可为空");
         }
         password = password.trim();
-        if (password.length() < 4 || password.length() > 20) {
-            return new Result<>(Result.FAIL_CODE, "密码长度要在 4 ~ 20 之间");
+        if (!(password.length() >= 4 && password.length() <= 20)) {
+            return new Result<String>(Result.FAIL_CODE, I18nUtil.getString("system_lengh_limit") + "[4-20]");
         }
-        String md5Password = DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
-        XxlJobUser user = (XxlJobUser) request.getAttribute(LoginService.LOGIN_IDENTITY_KEY);
-        XxlJobUser xxlJobUser = xxlJobUserMapper.loadByUsername(user.getUsername());
-        xxlJobUser.setPassword(md5Password);
-        xxlJobUserMapper.update(xxlJobUser);
+        String md5Password = DigestUtils.md5DigestAsHex(password.getBytes());
+        XxlJobUser loginUser = (XxlJobUser) request.getAttribute(LoginService.LOGIN_IDENTITY_KEY);
+        XxlJobUser existUser = xxlJobUserDao.loadByUsername(loginUser.getUsername());
+        existUser.setPassword(md5Password);
+        xxlJobUserDao.update(existUser);
         return Result.SUCCESS;
     }
-
 
 
 }

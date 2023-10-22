@@ -31,4 +31,11 @@ public class KillParam implements Serializable {
     public void setJobId(int jobId) {
         this.jobId = jobId;
     }
+
+    @Override
+    public String toString() {
+        return "KillParam{" +
+                "jobId=" + jobId +
+                '}';
+    }
 }

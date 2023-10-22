@@ -15,11 +15,11 @@
 
     <sql id="Base_Column_List">
         t.id,
-        t.appname,
-        t.title,
-        t.address_type,
-        t.address_list,
-        t.update_time
+		t.app_name,
+		t.title,
+		t.address_type,
+		t.address_list,
+		t.update_time
     </sql>
 
     <select id="findAll" resultType="com.xiaohe.admin.core.model.XxlJobGroup">
@@ -34,18 +34,21 @@
         from xxl_job_group as t
         where t.`id` = #{jobGroup}
     </select>
+
 <!--    查找自动注册的执行器组-->
-    <select id="findByAddressType" resultType="com.xiaohe.admin.core.model.XxlJobGroup">
-        select <include refid="Base_Column_List"/>
-        from xxl_job_group as t
-        where t.`address_type` = #{addressType}
+    <select id="findByAddressType" parameterType="java.lang.Integer" resultMap="XxlJobGroup">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_group AS t
+        WHERE t.address_type = #{addressType}
+        ORDER BY t.app_name, t.title, t.id ASC
     </select>
 
-<!--    批量更新-->
+
+    <!--    批量更新-->
     <update id="updateBatch" parameterType="com.xiaohe.admin.core.model.XxlJobGroup">
         <foreach collection="groupList" item="group" separator=";">
             update xxl_job_group
-            set `appname` = #{group.appname},
+            set `app_name` = #{group.appname},
                 `title` = #{group.title},
                 `address_type` = #{group.addressType},
                 `address_list` = #{group.addressList},

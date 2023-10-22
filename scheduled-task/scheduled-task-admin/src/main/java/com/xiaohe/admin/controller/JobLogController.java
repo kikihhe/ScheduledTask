@@ -3,6 +3,7 @@ package com.xiaohe.admin.controller;
 import com.xiaohe.admin.core.complete.XxlJobCompleter;
 import com.xiaohe.admin.core.model.*;
 import com.xiaohe.admin.core.scheduler.XxlJobScheduler;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.admin.mapper.XxlJobGroupMapper;
 import com.xiaohe.admin.mapper.XxlJobInfoMapper;
 import com.xiaohe.admin.mapper.XxlJobLogMapper;
@@ -50,13 +51,13 @@ public class JobLogController {
         List<XxlJobGroup> jobGroupList_all = xxlJobGroupMapper.findAll();
         List<XxlJobGroup> jobGroupList = JobInfoController.filterJobGroupByRole(request, jobGroupList_all);
         if (jobGroupList == null || jobGroupList.size() == 0) {
-            throw new RuntimeException("jobgroup_empty");
+            throw new RuntimeException(I18nUtil.getString("jobgroup_empty"));
         }
         model.addAttribute("JobGroupList", jobGroupList);
         if (jobId > 0) {
             XxlJobInfo jobInfo = xxlJobInfoMapper.loadById(jobId);
             if (jobInfo == null) {
-                throw new RuntimeException("jobinfo_field_id" + "system_unvalid");
+                throw new RuntimeException(I18nUtil.getString("jobinfo_field_id") + I18nUtil.getString("system_unvalid"));
             }
             model.addAttribute("jobInfo", jobInfo);
             JobInfoController.validPermission(request, jobInfo.getJobGroup());
@@ -104,7 +105,7 @@ public class JobLogController {
         Result<String> logStatue = Result.SUCCESS;
         XxlJobLog jobLog = xxlJobLogMapper.load(id);
         if (jobLog == null) {
-            throw new RuntimeException("joblog_logid_unvalid");
+            throw new RuntimeException(I18nUtil.getString("joblog_logid_unvalid"));
         }
         model.addAttribute("triggerCode", jobLog.getTriggerCode());
         model.addAttribute("handleCode", jobLog.getHandlerCode());
@@ -144,10 +145,10 @@ public class JobLogController {
         XxlJobLog log = xxlJobLogMapper.load(id);
         XxlJobInfo jobInfo = xxlJobInfoMapper.loadById(log.getJobId());
         if (jobInfo == null) {
-            return new Result<String>(500, "jobinfo_glue_jobid_unvalid");
+            return new Result<String>(500, I18nUtil.getString("jobinfo_glue_jobid_unvalid"));
         }
         if (Result.SUCCESS_CODE != log.getTriggerCode()) {
-            return new Result<String>(500, "joblog_kill_log_limit");
+            return new Result<String>(500, I18nUtil.getString("joblog_kill_log_limit"));
         }
         Result<String> runResult = null;
         try {
@@ -159,7 +160,7 @@ public class JobLogController {
         }
         if (Result.SUCCESS_CODE == runResult.getCode()) {
             log.setHandlerCode(Result.FAIL_CODE);
-            log.setHandleMsg("joblog_kill_log_byman" + ":" + (runResult.getMessage() != null ? runResult.getMessage() : ""));
+            log.setHandleMsg(I18nUtil.getString("joblog_kill_log_byman") + ":" + (runResult.getMessage() != null ? runResult.getMessage() : ""));
             log.setHandleTime(new Date());
             XxlJobCompleter.updateHandleInfoAndFinish(log);
             return new Result<String>(runResult.getMessage());
@@ -192,7 +193,7 @@ public class JobLogController {
         } else if (type == 9) {
             clearBeforeNum = 0;
         } else {
-            return new Result<String>(Result.FAIL_CODE, "joblog_clean_type_unvalid");
+            return new Result<>(Result.FAIL_CODE, I18nUtil.getString("joblog_clean_type_unvalid"));
         }
         List<Long> logIds = null;
         do {

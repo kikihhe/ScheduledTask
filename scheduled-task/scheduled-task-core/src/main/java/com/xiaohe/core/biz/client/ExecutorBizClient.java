@@ -1,7 +1,6 @@
 package com.xiaohe.core.biz.client;
 
 import com.xiaohe.core.biz.ExecutorBiz;
-import com.xiaohe.core.handler.annotation.XxlJob;
 import com.xiaohe.core.model.*;
 import com.xiaohe.core.util.XxlJobRemotingUtil;
 

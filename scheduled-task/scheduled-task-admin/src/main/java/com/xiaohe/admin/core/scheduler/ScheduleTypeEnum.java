@@ -1,5 +1,7 @@
 package com.xiaohe.admin.core.scheduler;
 
+import com.xiaohe.admin.core.util.I18nUtil;
+
 /**
  * @author : 小何
  * @Description : 定时任务的调度类型，默认为cron类型
@@ -9,17 +11,20 @@ public enum ScheduleTypeEnum {
     /**
      * 不使用任何类型
      */
-    NONE("schedule_type_none"),
+    NONE(I18nUtil.getString("schedule_type_none")),
 
     /**
      * cron表达式类型
      */
-    CRON("schedule_type_cron"),
+    CRON(I18nUtil.getString("schedule_type_cron")),
+
 
     /**
      * 固定频率类型
      */
-    FIX_RATE("schedule_type_fix_rate");
+    FIX_RATE(I18nUtil.getString("schedule_type_fix_rate"));
+
+
 
     private String title;
 

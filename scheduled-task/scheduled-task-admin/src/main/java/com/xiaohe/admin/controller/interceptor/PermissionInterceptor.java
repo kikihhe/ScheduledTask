@@ -1,6 +1,7 @@
 package com.xiaohe.admin.controller.interceptor;
 
 import com.xiaohe.admin.controller.annotation.PermissionLimit;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.admin.service.LoginService;
 import com.xiaohe.admin.core.model.XxlJobUser;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,7 @@ public class PermissionInterceptor implements AsyncHandlerInterceptor {
         }
         // 如果需要管理员但不是，抛出异常
         if (needAdminuser && loginUser.getRole() != 1) {
-            throw new RuntimeException("system_permission_limit");
+            throw new RuntimeException(I18nUtil.getString("system_permission_limit"));
         }
         // 判断是否登录时将用户从request中取了出来。重新塞进去
         request.setAttribute(LoginService.LOGIN_IDENTITY_KEY, loginUser);

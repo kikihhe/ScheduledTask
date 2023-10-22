@@ -57,4 +57,13 @@ public class LogParam implements Serializable {
     public void setFromLineNum(int fromLineNum) {
         this.fromLineNum = fromLineNum;
     }
+
+    @Override
+    public String toString() {
+        return "LogParam{" +
+                "logId=" + logId +
+                ", logDateTim=" + logDateTim +
+                ", fromLineNum=" + fromLineNum +
+                '}';
+    }
 }

@@ -8,7 +8,9 @@ import com.xiaohe.admin.core.model.XxlJobLogReport;
 import com.xiaohe.admin.core.route.ExecutorRouterStrategyEnum;
 import com.xiaohe.admin.core.scheduler.MisfireStrategyEnum;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
+import com.xiaohe.admin.core.thread.JobCompleteHelper;
 import com.xiaohe.admin.core.thread.JobScheduleHelper;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.admin.mapper.*;
 import com.xiaohe.admin.service.XxlJobService;
 import com.xiaohe.core.enums.ExecutorBlockStrategyEnum;
@@ -64,52 +66,102 @@ public class XxlJobServiceImpl implements XxlJobService {
      * @param jobInfo
      */
     @Override
-    public Result add(XxlJobInfo jobInfo) {
-        // 开始做数据校验
-        XxlJobGroup xxlJobGroup = xxlJobGroupMapper.load(jobInfo.getJobGroup());
-        if (xxlJobGroup == null) {
-            return Result.error("system_please_choose jobinfo_field_jobgroup");
+    public Result<String> add(XxlJobInfo jobInfo) {
+        //先查询到该定时任务对应的执行器
+        XxlJobGroup group = xxlJobGroupMapper.load(jobInfo.getJobGroup());
+        if (group == null) {
+            //如果执行器为空，返回失败
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("system_please_choose") + I18nUtil.getString("jobinfo_field_jobgroup")));
         }
-        if (!StringUtil.hasText(jobInfo.getJobDesc())) {
-            return Result.error("system_please_input jobinfo_field_jobdesc");
+        //下面是两个判空操作，先判空定时任务描述
+        if (jobInfo.getJobDesc() == null || jobInfo.getJobDesc().trim().length() == 0) {
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("system_please_input") + I18nUtil.getString("jobinfo_field_jobdesc")));
         }
-        if (!StringUtil.hasText(jobInfo.getAuthor())) {
-            return Result.error("system_please_input jobinfo_field_author");
+        //再判空定时任务负责人
+        if (jobInfo.getAuthor() == null || jobInfo.getAuthor().trim().length() == 0) {
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("system_please_input") + I18nUtil.getString("jobinfo_field_author")));
         }
-        // 判断调度类型
-        ScheduleTypeEnum scheduleType = ScheduleTypeEnum.match(jobInfo.getScheduleType(), null);
-        if (scheduleType == null) {
-            return Result.error("schedule_type system_unvalid");
+        //判断前段发送的定时任务是哪种调度类型的
+        ScheduleTypeEnum scheduleTypeEnum = ScheduleTypeEnum.match(jobInfo.getScheduleType(), null);
+        if (scheduleTypeEnum == null) {
+            //如果为空，则返回失败
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
         }
-        if (scheduleType == ScheduleTypeEnum.CRON && jobInfo.getScheduleConf().isEmpty() || !CronExpression.isValidExpression(jobInfo.getScheduleConf())) {
-            return Result.error("cron system_unvalid");
-        }
-        if (scheduleType == ScheduleTypeEnum.FIX_RATE) {
-            if (jobInfo.getScheduleConf().isEmpty()) {
-                return Result.error("schedule_type");
+        //判断是否为cron调度类型
+        if (scheduleTypeEnum == ScheduleTypeEnum.CRON) {
+            //如果是cron，则判断cron表达式是否正确
+            if (jobInfo.getScheduleConf() == null || !CronExpression.isValidExpression(jobInfo.getScheduleConf())) {
+                return new Result<String>(Result.FAIL_CODE, "Cron" + I18nUtil.getString("system_unvalid"));
             }
-            // 如果填写的频率小于1，也返回失败
+        }
+        //如果调度类型为按照固定频率
+        else if (scheduleTypeEnum == ScheduleTypeEnum.FIX_RATE) {
+            if (jobInfo.getScheduleConf() == null) {
+                //如果调度规则为空则返回失败
+                return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type")));
+            }
             try {
-                int i = Integer.parseInt(jobInfo.getScheduleConf());
-                if (i < 1) {
-                    return Result.error("schedule_type system_unvalid");
+                //如果规则的值小于1，则返回失败
+                int fixSecond = Integer.valueOf(jobInfo.getScheduleConf());
+                if (fixSecond < 1) {
+                    return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
                 }
             } catch (Exception e) {
-                return Result.error("schedule_type system_unvalid");
+                return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
             }
         }
 
 
-        // 开始添加
+        //判断路由策略是否为空
+        if (ExecutorRouterStrategyEnum.match(jobInfo.getExecutorRouteStrategy(), null) == null) {
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("jobinfo_field_executorRouteStrategy") + I18nUtil.getString("system_unvalid")));
+        }
+        //判断调度失败策略是否为空
+        if (MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), null) == null) {
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("misfire_strategy") + I18nUtil.getString("system_unvalid")));
+        }
+        //判断阻塞策略是否为空
+        if (ExecutorBlockStrategyEnum.match(jobInfo.getExecutorBlockStrategy(), null) == null) {
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("jobinfo_field_executorBlockStrategy") + I18nUtil.getString("system_unvalid")));
+        }
+        //判断是否有子任务
+        if (jobInfo.getChildJobId() != null && jobInfo.getChildJobId().trim().length() > 0) {
+            String[] childJobIds = jobInfo.getChildJobId().split(",");
+            //如果有则遍历子任务，做相应的判断处理
+            for (String childJobIdItem : childJobIds) {
+                if (childJobIdItem != null && childJobIdItem.trim().length() > 0 && XxlJobCompleter.isNumber(childJobIdItem)) {
+                    XxlJobInfo childJobInfo = xxlJobInfoMapper.loadById(Integer.parseInt(childJobIdItem));
+                    if (childJobInfo == null) {
+                        return new Result<String>(Result.FAIL_CODE,
+                                MessageFormat.format((I18nUtil.getString("jobinfo_field_childJobId") + "({0})" + I18nUtil.getString("system_not_found")), childJobIdItem));
+                    }
+                } else {
+                    return new Result<String>(Result.FAIL_CODE,
+                            MessageFormat.format((I18nUtil.getString("jobinfo_field_childJobId") + "({0})" + I18nUtil.getString("system_unvalid")), childJobIdItem));
+                }
+            }
+            //这里是把所有子任务id拼到一块
+            String temp = "";
+            for (String item : childJobIds) {
+                temp += item + ",";
+            }
+            //去掉最后一个句号
+            temp = temp.substring(0, temp.length() - 1);
+            //设置子任务id
+            jobInfo.setChildJobId(temp);
+        }
+        //下面就是定时任务的添加时间，更新时间和glue的更新时间
         jobInfo.setAddTime(new Date());
         jobInfo.setUpdateTime(new Date());
         jobInfo.setGlueUpdatetime(new Date());
-        int save = xxlJobInfoMapper.save(jobInfo);
-        if (save < 1 || jobInfo.getId() < 0) {
-            return Result.error("jobinfo_field_add system_fail");
+        //真正保存定时任务
+        xxlJobInfoMapper.save(jobInfo);
+        if (jobInfo.getId() < 1) {
+            //走到这里意味保存失败
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("jobinfo_field_add") + I18nUtil.getString("system_fail")));
         }
-
-        return Result.success("add success");
+        //走到这里则保存成功
+        return new Result<String>(String.valueOf(jobInfo.getId()));
     }
 
     /**
@@ -117,54 +169,54 @@ public class XxlJobServiceImpl implements XxlJobService {
      */
     @Override
     public Result<String> update(XxlJobInfo jobInfo) {
-        if (jobInfo.getJobDesc() == null || jobInfo.getJobDesc().trim().length() == 0) {
-            return new Result<String>(Result.FAIL_CODE, ("system_please_input" + "jobinfo_field_jobdesc"));
+        if (!StringUtil.hasText(jobInfo.getJobDesc())) {
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("system_please_input") + I18nUtil.getString("jobinfo_field_jobdesc")));
         }
-        if (jobInfo.getAuthor() == null || jobInfo.getAuthor().trim().length() == 0) {
-            return new Result<String>(Result.FAIL_CODE, ("system_please_input" + "jobinfo_field_author"));
+        if (jobInfo.getAuthor() == null || jobInfo.getAuthor().trim().isEmpty()) {
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("system_please_input") + I18nUtil.getString("jobinfo_field_author")));
         }
         ScheduleTypeEnum scheduleTypeEnum = ScheduleTypeEnum.match(jobInfo.getScheduleType(), null);
         if (scheduleTypeEnum == null) {
-            return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
         }
         if (scheduleTypeEnum == ScheduleTypeEnum.CRON) {
             if (jobInfo.getScheduleConf() == null || !CronExpression.isValidExpression(jobInfo.getScheduleConf())) {
-                return new Result<String>(Result.FAIL_CODE, "Cron" + "system_unvalid");
+                return new Result<String>(Result.FAIL_CODE, "Cron" + I18nUtil.getString("system_unvalid"));
             }
         } else if (scheduleTypeEnum == ScheduleTypeEnum.FIX_RATE /*|| scheduleTypeEnum == ScheduleTypeEnum.FIX_DELAY*/) {
             if (jobInfo.getScheduleConf() == null) {
-                return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+                return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
             }
             try {
                 int fixSecond = Integer.valueOf(jobInfo.getScheduleConf());
                 if (fixSecond < 1) {
-                    return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+                    return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
                 }
             } catch (Exception e) {
-                return new Result<String>(Result.FAIL_CODE, (("schedule_type") + ("system_unvalid")));
+                return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
             }
         }
         if (ExecutorRouterStrategyEnum.match(jobInfo.getExecutorRouteStrategy(), null) == null) {
-            return new Result<String>(Result.FAIL_CODE, (("jobinfo_field_executorRouteStrategy") + ("system_unvalid")));
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("jobinfo_field_executorRouteStrategy") + I18nUtil.getString("system_unvalid")));
         }
         if (MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), null) == null) {
-            return new Result<String>(Result.FAIL_CODE, (("misfire_strategy") + ("system_unvalid")));
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("misfire_strategy") + I18nUtil.getString("system_unvalid")));
         }
         if (ExecutorBlockStrategyEnum.match(jobInfo.getExecutorBlockStrategy(), null) == null) {
-            return new Result<String>(Result.FAIL_CODE, (("jobinfo_field_executorBlockStrategy") + ("system_unvalid")));
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("jobinfo_field_executorBlockStrategy") + I18nUtil.getString("system_unvalid")));
         }
-        if (jobInfo.getChildJobId() != null && jobInfo.getChildJobId().trim().length() > 0) {
+        if (jobInfo.getChildJobId() != null && !jobInfo.getChildJobId().trim().isEmpty()) {
             String[] childJobIds = jobInfo.getChildJobId().split(",");
             for (String childJobIdItem : childJobIds) {
-                if (childJobIdItem != null && childJobIdItem.trim().length() > 0 && XxlJobCompleter.isNumber(childJobIdItem)) {
+                if (childJobIdItem != null && !childJobIdItem.trim().isEmpty() && XxlJobCompleter.isNumber(childJobIdItem)) {
                     XxlJobInfo childJobInfo = xxlJobInfoMapper.loadById(Integer.parseInt(childJobIdItem));
                     if (childJobInfo == null) {
                         return new Result<String>(Result.FAIL_CODE,
-                                MessageFormat.format((("jobinfo_field_childJobId") + "({0})" + ("system_not_found")), childJobIdItem));
+                                MessageFormat.format((I18nUtil.getString("jobinfo_field_childJobId") + "({0})" + I18nUtil.getString("system_not_found")), childJobIdItem));
                     }
                 } else {
                     return new Result<String>(Result.FAIL_CODE,
-                            MessageFormat.format((("jobinfo_field_childJobId") + "({0})" + ("system_unvalid")), childJobIdItem));
+                            MessageFormat.format((I18nUtil.getString("jobinfo_field_childJobId") + "({0})" + I18nUtil.getString("system_unvalid")), childJobIdItem));
                 }
             }
             String temp = "";
@@ -176,12 +228,12 @@ public class XxlJobServiceImpl implements XxlJobService {
         }
         XxlJobGroup jobGroup = xxlJobGroupMapper.load(jobInfo.getJobGroup());
         if (jobGroup == null) {
-            return new Result<String>(Result.FAIL_CODE, ("jobinfo_field_jobgroup" + "system_unvalid"));
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("jobinfo_field_jobgroup") + I18nUtil.getString("system_unvalid")));
         }
         //从数据库中查询出旧的定时任务信息
         XxlJobInfo exists_jobInfo = xxlJobInfoMapper.loadById(jobInfo.getId());
         if (exists_jobInfo == null) {
-            return new Result<String>(Result.FAIL_CODE, ("jobinfo_field_id" + "system_not_found"));
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("jobinfo_field_id") + I18nUtil.getString("system_not_found")));
         }
         //既然是更新定时任务，下面就要做点不一样的事，先得到定时任务下一次的执行时间
         long nextTriggerTime = exists_jobInfo.getTriggerNextTime();
@@ -194,13 +246,13 @@ public class XxlJobServiceImpl implements XxlJobService {
                 //执行时间，这么做其实就是在一个新的调度周期中，开始以新的执行时间来调度定时任务
                 Date nextValidTime = JobScheduleHelper.generateNextValidTime(jobInfo, new Date(System.currentTimeMillis() + JobScheduleHelper.PRE_READ_MS));
                 if (nextValidTime == null) {
-                    return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+                    return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
                 }
                 //把新的执行时间赋值给上面的nextTriggerTime
                 nextTriggerTime = nextValidTime.getTime();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
-                return new Result<String>(Result.FAIL_CODE, ("schedule_type" + "system_unvalid"));
+                return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type") + I18nUtil.getString("system_unvalid")));
             }
         }
         //更新旧的定时任务的信息
@@ -224,7 +276,6 @@ public class XxlJobServiceImpl implements XxlJobService {
         xxlJobInfoMapper.update(exists_jobInfo);
         return Result.SUCCESS;
     }
-
 
     @Override
     public Result remove(Integer id) {
@@ -323,22 +374,22 @@ public class XxlJobServiceImpl implements XxlJobService {
         ScheduleTypeEnum scheduleTypeEnum = ScheduleTypeEnum.match(xxlJobInfo.getScheduleType(), ScheduleTypeEnum.NONE);
         if (ScheduleTypeEnum.NONE == scheduleTypeEnum) {
             //调度类型为空，就是什么也不使用，就什么都不做，不调度该任务
-            return new Result<String>(Result.FAIL_CODE, ("schedule_type_none_limit_start"));
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type_none_limit_start")) );
         }
         long nextTriggerTime = 0;
         try {
-            // 得到该定时任务5秒之后的执行时间，这里之所以要得到5秒之后，是因为调度定时任务的线程，刚开始执行的时候会睡4到5秒
+            //得到该定时任务5秒之后的执行时间，这里之所以要得到5秒之后，是因为调度定时任务的线程，刚开始执行的时候会睡4到5秒
             Date nextValidTime = JobScheduleHelper.generateNextValidTime(xxlJobInfo, new Date(System.currentTimeMillis() + JobScheduleHelper.PRE_READ_MS));
             if (nextValidTime == null) {
-                return new Result<String>(Result.FAIL_CODE, "schedule_type" + "system_unvalid");
+                return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type")+I18nUtil.getString("system_unvalid")) );
             }
             //下一次执行时间赋值
             nextTriggerTime = nextValidTime.getTime();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return new Result<>(Result.FAIL_CODE, "schedule_type" + "system_unvalid");
+            return new Result<String>(Result.FAIL_CODE, (I18nUtil.getString("schedule_type")+I18nUtil.getString("system_unvalid")) );
         }
-        //修改定时任务的运行状态，改为运行
+        //修稿定时任务的运行状态，改为运行
         xxlJobInfo.setTriggerStatus(1);
         xxlJobInfo.setTriggerLastTime(0);
         xxlJobInfo.setTriggerNextTime(nextTriggerTime);
@@ -346,6 +397,7 @@ public class XxlJobServiceImpl implements XxlJobService {
         xxlJobInfoMapper.update(xxlJobInfo);
         return Result.SUCCESS;
     }
+
 
     /**
      * 停止定时任务

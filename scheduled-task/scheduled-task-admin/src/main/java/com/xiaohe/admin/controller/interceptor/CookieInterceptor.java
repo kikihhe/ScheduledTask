@@ -1,5 +1,7 @@
 package com.xiaohe.admin.controller.interceptor;
 
+import com.xiaohe.admin.core.util.FtlUtil;
+import com.xiaohe.admin.core.util.I18nUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -24,6 +26,9 @@ public class CookieInterceptor implements AsyncHandlerInterceptor {
                 cookieMap.put(cookie.getName(), cookie);
             }
             modelAndView.addObject("cookieMap", cookieMap);
+        }
+        if (modelAndView != null) {
+            modelAndView.addObject("I18nUtil", FtlUtil.generateStaticModel(I18nUtil.class.getName()));
         }
     }
 }

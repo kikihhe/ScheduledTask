@@ -2,6 +2,7 @@ package com.xiaohe.admin.core.route.strategy;
 
 import com.xiaohe.admin.core.route.ExecutorRouter;
 import com.xiaohe.admin.core.scheduler.XxlJobScheduler;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.biz.ExecutorBiz;
 import com.xiaohe.core.model.IdleBeatParam;
 import com.xiaohe.core.model.Result;
@@ -27,11 +28,11 @@ public class ExecutorRouteBusyOver extends ExecutorRouter {
                 logger.error(e.getMessage(), e);
                 beatResult = Result.error("" + e);
             }
-            result.append(result.length() > 0 ? "<br></br>" : "")
-                    .append("jobconf_idleBeat：")
-                    .append("<br>address：" + address)
-                    .append("<br>code：" + beatResult.getCode())
-                    .append("<br>msg：" + beatResult.getMessage());
+            result.append((result.length() > 0) ? "<br><br>" : "")
+                    .append(I18nUtil.getString("jobconf_idleBeat") + "：")
+                    .append("<br>address：").append(address)
+                    .append("<br>code：").append(beatResult.getCode())
+                    .append("<br>msg：").append(beatResult.getMessage());
             if (beatResult.getCode() == Result.SUCCESS_CODE) {
                 beatResult.setMessage(result.toString());
                 beatResult.setContent(address);

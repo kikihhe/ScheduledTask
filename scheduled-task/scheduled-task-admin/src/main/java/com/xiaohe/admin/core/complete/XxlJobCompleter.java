@@ -5,6 +5,7 @@ import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
 import com.xiaohe.admin.core.thread.JobTriggerPoolHelper;
 import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
+import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.context.XxlJobContext;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.StringUtil;
@@ -25,8 +26,8 @@ public class XxlJobCompleter {
     /**
      * 1. 调度子任务，等待执行结果并记录日志 (记录再在 XxlJobLog的HandleMessage后面)
      * 2. 如果这个任务太长了就切割一下，最长为15000字符
+     *
      * @param xxlJobLog
-     * @return
      */
     public static int updateHandleInfoAndFinish(XxlJobLog xxlJobLog) {
         // 执行子任务
@@ -55,24 +56,22 @@ public class XxlJobCompleter {
             return;
         }
         // 有子任务，开始执行
-        triggerChildMsg = "<br><br><span style=\"color:#00c0ef;\" > >>>>>>>>>>>" +"jobconf_trigger_child_run" + "<<<<<<<<<<< </span><br>";
+        triggerChildMsg = "<br><br><span style=\"color:#00c0ef;\" > >>>>>>>>>>>" + I18nUtil.getString("jobconf_trigger_child_run") + "<<<<<<<<<<< </span><br>";
         String[] childJobIds = xxlJobInfo.getChildJobId().split(",");
         for (int i = 0; i < childJobIds.length; i++) {
             int childJobId = isNumber(childJobIds[i]) ? Integer.parseInt(childJobIds[i]) : -1;
             if (childJobId == -1) {
-                triggerChildMsg += MessageFormat.format("jobconf_callback_child_msg2", (i+1), childJobIds.length, childJobIds[i]);
+                triggerChildMsg += MessageFormat.format(I18nUtil.getString("jobconf_callback_child_msg2"), (i + 1), childJobIds.length, childJobIds[i]);
                 continue;
             }
             JobTriggerPoolHelper.trigger(childJobId, TriggerTypeEnum.PARENT, -1, null, null, null);
             Result<String> triggerChildResult = Result.SUCCESS;
-            triggerChildMsg += MessageFormat.format(
-                    "jobconf_callback_child_msg1",
-                    (i+1),
+            triggerChildMsg += MessageFormat.format(I18nUtil.getString("jobconf_callback_child_msg1"),
+                    (i + 1),
                     childJobIds.length,
                     childJobIds[i],
-                    triggerChildResult.getCode() == Result.SUCCESS_CODE ? "system_success" : "system_fail",
-                    triggerChildResult.getMessage()
-            );
+                    (triggerChildResult.getCode() == Result.SUCCESS_CODE ? I18nUtil.getString("system_success") : I18nUtil.getString("system_fail")),
+                    triggerChildResult.getMessage());
         }
         if (StringUtil.hasText(triggerChildMsg)) {
             xxlJobLog.setHandleMsg(xxlJobLog.getHandleMsg() + triggerChildMsg);

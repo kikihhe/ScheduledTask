@@ -71,4 +71,14 @@ public class HandlerCallbackParam implements Serializable {
     public void setHandleMsg(String handleMsg) {
         this.handleMsg = handleMsg;
     }
+
+    @Override
+    public String toString() {
+        return "HandlerCallbackParam{" +
+                "logId=" + logId +
+                ", logDateTim=" + logDateTim +
+                ", handleCode=" + handleCode +
+                ", handleMsg='" + handleMsg + '\'' +
+                '}';
+    }
 }

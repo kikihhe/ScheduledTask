@@ -26,7 +26,7 @@ spring:
     settings:
       number_format: 0.##########
   datasource:
-    url: jdbc:mysql://127.0.0.1:3309/scheduled_task?characterEncoding=utf-8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://127.0.0.1:3309/xxl_job?characterEncoding=utf-8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
