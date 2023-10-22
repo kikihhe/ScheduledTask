@@ -67,6 +67,7 @@ public class JobScheduleHelper {
     public void start() {
         initScheduleThread();
         initRingThread();
+        logger.info(">>>>>>>>>>>> xxl-job, JobScheduleHelper start success");
     }
 
 

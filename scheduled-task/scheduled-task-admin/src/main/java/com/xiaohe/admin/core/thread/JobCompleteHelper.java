@@ -86,6 +86,7 @@ public class JobCompleteHelper {
         monitorThread.setDaemon(true);
         monitorThread.setName("xxl-job, admin JobLosedMonitorHelper");
         monitorThread.start();
+        logger.info(">>>>>>>>>>>> xxl-job, JobCompleteHelper start success");
     }
 
     private void initCallbackThreadPool() {

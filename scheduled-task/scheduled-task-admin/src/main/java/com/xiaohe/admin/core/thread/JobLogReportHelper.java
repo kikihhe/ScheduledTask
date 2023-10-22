@@ -65,6 +65,8 @@ public class JobLogReportHelper {
         logThread.setDaemon(true);
         logThread.setName("xxl-job, admin JobLogReportHelper");
         logThread.start();
+
+        logger.info(">>>>>>>>>>>> xxl-job, JobLogReportHelper start success");
     }
 
     /**

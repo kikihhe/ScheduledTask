@@ -78,6 +78,7 @@ public class JobTriggerPoolHelper {
                     }
                 }
         );
+        logger.info(">>>>>>>>>>>> xxl-job, JobTriggerPoolHelper start success");
     }
 
     /**

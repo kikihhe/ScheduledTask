@@ -56,6 +56,7 @@ public class JobRegistryHelper {
         registryMonitorThread.setName("xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread");
         registryMonitorThread.start();
 
+        logger.info(">>>>>>>>>>>> xxl-job, JobRegistryHelper start success");
     }
 
     /**
