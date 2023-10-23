@@ -7,9 +7,9 @@
 遗憾的是，由于没学过thymleaf，并且在仿写的过程中没有注意国际化问题，所以虽然项目可以启动，可以使用Postman访问，但无法访问前端界面。。。😭
 
 但是我用从官网下载的 xxl-job 试了一下：
-![自动注册](https://typorehwf.oss-cn-chengdu.aliyuncs.com/20231023120216.png)
+![自动注册-控制台显示](https://typorehwf.oss-cn-chengdu.aliyuncs.com/20231023120216.png)
 
-![自动注册](https://typorehwf.oss-cn-chengdu.aliyuncs.com/20231023120504.png)
+![自动注册-web端显示](https://typorehwf.oss-cn-chengdu.aliyuncs.com/20231023120504.png)
 
 # 差别
 ## 1. 添加xxl-job-auto-register模块
