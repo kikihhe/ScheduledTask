@@ -4,7 +4,7 @@ import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
-import com.xiaohe.core.route.ExecutorRouterStrategyEnum;
+import com.xiaohe.admin.core.route.ExecutorRouterStrategyEnum;
 import com.xiaohe.admin.core.scheduler.XxlJobScheduler;
 import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.biz.ExecutorBiz;

@@ -5,7 +5,7 @@ import com.xiaohe.admin.core.cron.CronExpression;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLogReport;
-import com.xiaohe.core.route.ExecutorRouterStrategyEnum;
+import com.xiaohe.admin.core.route.ExecutorRouterStrategyEnum;
 import com.xiaohe.admin.core.scheduler.MisfireStrategyEnum;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
 import com.xiaohe.admin.core.thread.JobScheduleHelper;
