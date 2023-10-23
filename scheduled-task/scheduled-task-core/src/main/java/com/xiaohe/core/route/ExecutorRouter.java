@@ -1,4 +1,4 @@
-package com.xiaohe.admin.core.route;
+package com.xiaohe.core.route;
 
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.model.TriggerParam;

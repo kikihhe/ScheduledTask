@@ -3,10 +3,9 @@ package com.xiaohe.admin.core.thread;
 import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
 import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
 import com.xiaohe.admin.core.trigger.XxlJobTrigger;
-import groovy.transform.AutoImplement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jmx.export.assembler.AutodetectCapableMBeanInfoAssembler;
+
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;

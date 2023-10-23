@@ -4,6 +4,7 @@ import com.xiaohe.core.biz.AdminBiz;
 import com.xiaohe.core.model.HandlerCallbackParam;
 import com.xiaohe.core.model.RegistryParam;
 import com.xiaohe.core.model.Result;
+import com.xiaohe.core.model.XxlJobInfo;
 import com.xiaohe.core.util.XxlJobRemotingUtil;
 
 import java.util.List;
@@ -61,6 +62,10 @@ public class AdminBizClient implements AdminBiz {
     @Override
     public Result registryRemove(RegistryParam registryParam) {
         return XxlJobRemotingUtil.postBody(addressUrl + "api/registryRemove", accessToken, timeout, registryParam, String.class);
+    }
+
+    public Result registerMethod(List<XxlJobInfo> xxlJobInfos) {
+        return XxlJobRemotingUtil.postBody(addressUrl + "jobinfo/addBatch", accessToken, timeout, xxlJobInfos, String.class);
     }
 
 

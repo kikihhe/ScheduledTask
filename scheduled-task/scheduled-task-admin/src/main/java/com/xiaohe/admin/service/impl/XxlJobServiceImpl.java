@@ -5,10 +5,9 @@ import com.xiaohe.admin.core.cron.CronExpression;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLogReport;
-import com.xiaohe.admin.core.route.ExecutorRouterStrategyEnum;
+import com.xiaohe.core.route.ExecutorRouterStrategyEnum;
 import com.xiaohe.admin.core.scheduler.MisfireStrategyEnum;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
-import com.xiaohe.admin.core.thread.JobCompleteHelper;
 import com.xiaohe.admin.core.thread.JobScheduleHelper;
 import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.admin.mapper.*;
@@ -58,6 +57,16 @@ public class XxlJobServiceImpl implements XxlJobService {
         map.put("recordsFiltered", xxlJobInfos.size());
         map.put("data", xxlJobInfos);
         return map;
+    }
+
+    public Result<String> addBatch(List<XxlJobInfo> xxlJobInfos) {
+        for (XxlJobInfo xxlJobInfo : xxlJobInfos) {
+            Result<String> add = add(xxlJobInfo);
+            if (add.getCode() != 200) {
+                return add;
+            }
+        }
+        return Result.success();
     }
 
     /**

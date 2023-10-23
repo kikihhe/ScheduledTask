@@ -1,7 +1,8 @@
-package com.xiaohe.admin.core.route;
+package com.xiaohe.core.route;
 
 import com.xiaohe.admin.core.route.strategy.*;
 import com.xiaohe.admin.core.util.I18nUtil;
+import com.xiaohe.core.route.strategy.*;
 
 /**
  * @author : 小何

@@ -1,12 +1,11 @@
-package com.xiaohe.admin.core.route.strategy;
+package com.xiaohe.core.route.strategy;
 
-import com.xiaohe.admin.core.route.ExecutorRouter;
+import com.xiaohe.core.route.ExecutorRouter;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.model.TriggerParam;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author : 小何

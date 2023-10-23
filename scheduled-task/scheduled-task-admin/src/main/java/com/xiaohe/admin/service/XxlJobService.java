@@ -4,6 +4,7 @@ import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.core.model.Result;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,6 +17,8 @@ public interface XxlJobService {
     public Map<String, Object> pageList(int start, int length, int jobGroup, int triggerStatus, String jobDesc, String executorHandler, String author);
 
     public Result add(XxlJobInfo jobInfo);
+
+    public Result addBatch(List<XxlJobInfo> xxlJobInfos);
 
     Result<String> update(XxlJobInfo jobInfo);
 

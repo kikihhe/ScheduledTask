@@ -1,7 +1,6 @@
-package com.xiaohe.admin.core.route.strategy;
+package com.xiaohe.core.route.strategy;
 
-import com.sun.org.apache.xml.internal.security.utils.I18n;
-import com.xiaohe.admin.core.route.ExecutorRouter;
+import com.xiaohe.core.route.ExecutorRouter;
 import com.xiaohe.admin.core.scheduler.XxlJobScheduler;
 import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.biz.ExecutorBiz;

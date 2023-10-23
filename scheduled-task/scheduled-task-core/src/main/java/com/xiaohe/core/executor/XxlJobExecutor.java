@@ -129,6 +129,8 @@ public class XxlJobExecutor {
      */
     private static List<AdminBiz> adminBizList;
 
+    protected List<AdminBizClient> adminBizClients;
+
 
     /**
      * 初始化执行器给调度中心发送消息的组件
@@ -147,8 +149,10 @@ public class XxlJobExecutor {
             AdminBizClient adminBiz = new AdminBizClient(address, accessToken);
             if (adminBizList == null) {
                 adminBizList = new ArrayList<>();
+
             }
             adminBizList.add(adminBiz);
+            adminBizClients.add(adminBiz);
         }
     }
 
@@ -338,7 +342,16 @@ public class XxlJobExecutor {
         XxlJobExecutor.adminBizList = adminBizList;
     }
 
+    public List<AdminBizClient> getAdminBizClients() {
+        return adminBizClients;
+    }
+
+    public void setAdminBizClients(List<AdminBizClient> adminBizClients) {
+        this.adminBizClients = adminBizClients;
+    }
+
     public void setIp(String ip) {
+
         this.ip = ip;
     }
 

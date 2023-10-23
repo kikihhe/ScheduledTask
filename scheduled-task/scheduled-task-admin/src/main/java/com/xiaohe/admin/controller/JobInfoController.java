@@ -2,7 +2,7 @@ package com.xiaohe.admin.controller;
 
 
 import com.xiaohe.admin.core.model.XxlJobGroup;
-import com.xiaohe.admin.core.route.ExecutorRouterStrategyEnum;
+import com.xiaohe.core.route.ExecutorRouterStrategyEnum;
 import com.xiaohe.admin.core.scheduler.MisfireStrategyEnum;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
 import com.xiaohe.admin.core.thread.JobScheduleHelper;
@@ -119,7 +119,11 @@ public class JobInfoController {
         return xxlJobService.add(jobInfo);
     }
 
-
+    @RequestMapping("/addBatch")
+    @ResponseBody
+    public Result<String> addBatch(List<XxlJobInfo> xxlJobInfos) {
+        return xxlJobService.addBatch(xxlJobInfos);
+    }
     /**
      * 更新定时任务
      */
