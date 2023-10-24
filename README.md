@@ -5,13 +5,19 @@
 低情商 ：照着xxl-job抄的。😁
 
 遗憾的是，由于没学过thymleaf，并且在仿写的过程中没有注意国际化问题，所以虽然项目可以启动，可以使用Postman访问，但无法访问前端界面。。。😭
+
+但是我用从官网下载的 xxl-job 试了一下：
+![自动注册-控制台显示](https://typorehwf.oss-cn-chengdu.aliyuncs.com/20231023120216.png)
+
+![自动注册-web端显示](https://typorehwf.oss-cn-chengdu.aliyuncs.com/20231023120504.png)
+
 # 差别
 ## 1. 添加xxl-job-auto-register模块
 ![任务的自动注册](https://typorehwf.oss-cn-chengdu.aliyuncs.com/20231022124306.png)
 实现 @XxlJobRegister 注解，可以在代码里硬编码注册任务，以后可以在web端看到它并可以修改corn表达式。
 
 - 优点：不用代码写一遍还打开web端再注册一遍。
-- 缺点：在web端修改了任务后，比如修改了corn表达式，代码里面可能是一天一次，数据库里面是一天两次。也就是不一致问题。没办法你在web端修改了没办法直接将运行的代码改掉。添加了数据库表xxl_job_info_history，记录任务修改日志。
+- 缺点：在web端修改了任务后，比如修改了corn表达式，代码里面可能是一天一次，数据库里面是一天两次。也就是不一致问题。没办法，你在web端修改了无法直接将运行的代码改掉。添加了数据库表xxl_job_info_history，记录任务修改日志。
 ## 2. 修改sql防止并发情况
 XxlJobInfoMapper 中有这么一句sql:
 
