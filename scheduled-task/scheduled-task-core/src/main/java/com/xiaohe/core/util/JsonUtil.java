@@ -1,7 +1,10 @@
 package com.xiaohe.core.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -12,6 +15,8 @@ import java.lang.reflect.Type;
  * @date : 2023-09-20 18:25
  */
 public class JsonUtil {
+
+    private static Logger logger = LoggerFactory.getLogger(JsonUtil.class);
     private static Gson gson = null;
 
     static {
@@ -23,8 +28,15 @@ public class JsonUtil {
     }
 
     public static <T> String writeValueAsString(T object) {
-        return gson.toJson(object);
+        try {
+            return new ObjectMapper().writeValueAsString(object);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return null;
     }
+
 
     public static <T> T readValue(String json, Class<T> classOfT, Class argClassOfT) {
         Type type = new ParameterizedType4ReturnT(classOfT, new Class[]{argClassOfT});
