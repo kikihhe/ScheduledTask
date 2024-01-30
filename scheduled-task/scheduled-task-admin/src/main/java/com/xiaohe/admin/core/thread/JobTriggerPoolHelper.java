@@ -91,10 +91,10 @@ public class JobTriggerPoolHelper {
     }
 
     /**
-     * 时间轮，如果有慢任务出现就会被记录在该Map中。
+     * 如果有慢任务出现就会被记录在该Map中。
      * 慢任务 : 执行时间超过500ms
      * key : jobId
-     * value : 一分钟内该任务慢执行的次数
+     * value : 一分钟内该任务慢调度的次数
      */
     private volatile ConcurrentHashMap<Integer, AtomicInteger> jobTimeoutCountMap = new ConcurrentHashMap<>();
 
@@ -134,7 +134,7 @@ public class JobTriggerPoolHelper {
         ThreadPoolExecutor triggerPool = fastTriggerPool;
         AtomicInteger jobTimeoutCount = jobTimeoutCountMap.get(jobId);
         if (jobTimeoutCount != null && jobTimeoutCount.get() > 10) {
-            triggerPool = fastTriggerPool;
+            triggerPool = slowTriggerPool;
         }
         triggerPool.execute(() -> {
             // start用于记录此次执行花费时间
@@ -150,7 +150,7 @@ public class JobTriggerPoolHelper {
                     minTime = minTime_now;
                     jobTimeoutCountMap.clear();
                 }
-                // 如果任务执行花费超过500ms，记录一次慢执行
+                // 如果任务调度花费超过500ms，记录一次慢执行
                 long end = System.currentTimeMillis();
                 if (end - start > 500) {
                     AtomicInteger timeoutCount = jobTimeoutCountMap.putIfAbsent(jobId, new AtomicInteger(0));

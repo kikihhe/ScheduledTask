@@ -7,6 +7,7 @@ import com.xiaohe.admin.core.scheduler.MisfireStrategyEnum;
 import com.xiaohe.admin.core.scheduler.ScheduleTypeEnum;
 import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
 import com.xiaohe.core.util.CollectionUtil;
+import com.xiaohe.core.util.IPUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,8 @@ public class JobScheduleHelper {
      */
     private volatile boolean ringThreadToStop = false;
 
+
+
     /**
      * 时间轮
      * key : 时间下标，数字代表一分钟内的时间。比如 5 代表这分钟内的第五秒
@@ -82,7 +85,7 @@ public class JobScheduleHelper {
             }
             logger.info(">>>>>>>>>> init xxl-job scheduler success.");
 
-            // 默认预读数量，根据配置的快慢线程池数量来决定一次性(1s)能处理多少任务。默认一个任务50ms，那么1s内能执行20个任务。
+            // 默认预读数量，根据配置的快慢线程池数量来决定一次性(1s)能处理多少任务。默认一个任务50ms，那么1s内能调度20个任务。
             int preReadCount = (XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax() + XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) % (1000 / 50);
             while (!scheduleThreadToStop) {
                 // start记录扫描数据库花了多长时间
@@ -96,9 +99,12 @@ public class JobScheduleHelper {
                     connAutoCommit = conn.getAutoCommit();
                     // 事务
                     conn.setAutoCommit(false);
+                    logger.info("{}:{} 开始执行 select...for update", IPUtil.getIp(), XxlJobAdminConfig.getAdminConfig().getPort());
                     preparedStatement = conn.prepareStatement("select * from xxl_job_lock where lock_name = 'schedule_lock' for update");
                     // 执行，得到数据库锁
                     preparedStatement.execute();
+
+                    logger.info("{}:{} 获取到数据库锁，开始扫描", IPUtil.getIp(), XxlJobAdminConfig.getAdminConfig().getPort());
                     // now 用于从数据库扫出来任务 now + 5000
                     long now = System.currentTimeMillis();
                     List<XxlJobInfo> xxlJobInfos = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().scheduleJobQuery(now + PRE_READ_MS, preReadCount);
@@ -143,6 +149,7 @@ public class JobScheduleHelper {
                     // 更新一下上面任务的状态。
                     XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().scheduleUpdate(xxlJobInfos);
                 } catch (Exception e) {
+                    logger.info("出现异常，IP为 {}:{}", IPUtil.getIp(), XxlJobAdminConfig.getAdminConfig().getPort());
                     if (!scheduleThreadToStop) {
                         logger.error(">>>>>>>>>>> xxl-job, JobScheduleHelper#scheduleThread error:{}", e);
                     }

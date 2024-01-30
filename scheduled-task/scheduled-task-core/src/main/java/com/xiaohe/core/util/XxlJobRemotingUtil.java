@@ -75,6 +75,8 @@ public class XxlJobRemotingUtil {
                 HttpsURLConnection https = (HttpsURLConnection) connection;
                 trustAllHosts(https);
             }
+//            connectTimeout 是建立连接的超时时间
+//            readTimeout，是传递数据的超时时间
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setDoInput(true);
@@ -84,7 +86,7 @@ public class XxlJobRemotingUtil {
             connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
             connection.setRequestProperty("Accept-Charset", "application/json;charset=UTF-8");
-            //判断令牌是否为空
+            // 判断令牌是否为空
             if(accessToken!=null && accessToken.trim().length()>0){
                 //设置令牌，以键值对的形式，键就是该类的静态成员变量
                 connection.setRequestProperty(XXL_JOB_ACCESS_TOKEN, accessToken);

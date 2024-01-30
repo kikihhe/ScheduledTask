@@ -61,6 +61,7 @@ public class XxlJobTrigger {
             jobGroup.setAddressType(1);
         }
         // 分片广播逻辑, 如果设置了分片广播，executorSharingParam不为空，取出两个参数: 分片索引、分片总数
+        // xxl-job的分片广播只支持整个group全部广播
         int[] shardingParam = null;
         if (executorShardingParam != null) {
             String[] shardingArr = executorShardingParam.split("/");
@@ -107,11 +108,12 @@ public class XxlJobTrigger {
         List<String> registryList = group.getRegistryList();
 
         if (CollectionUtil.isEmpty(registryList)) {
-            // 如果这个任务根本没有执行器
+            // 如果这个任务根本没有执行器，返回错误
             routeAddressResult = Result.error(I18nUtil.getString("jobconf_trigger_address_empty"));
         } else {
             if (routerStrategy == ExecutorRouterStrategyEnum.SHARDING_BROADCAST) {
                 // 如果路由策略为分片，为了防止index超过值，如果超过了，兜底一下，使用第一个执行器address
+                // 为了防止调度的时候有的执行器突然宕机
                 address = index < registryList.size() ? registryList.get(index) : registryList.get(0);
             } else {
                 routeAddressResult = routerStrategy.getExecutorRouter().route(triggerParam, registryList);
@@ -120,6 +122,7 @@ public class XxlJobTrigger {
         }
         // 设置调度结果, 如果地址不为空，就去调度。如果为空，不需要调度
         Result<String> triggerResult = null;
+        // 开始调度，拿到调度结果
         if (StringUtil.hasText(address)) {
             triggerResult = runExecutor(triggerParam, address);
         } else {
@@ -157,6 +160,7 @@ public class XxlJobTrigger {
         Result<String> runResult = null;
         try {
             ExecutorBiz executorBiz = XxlJobScheduler.getExecutorBiz(address);
+            // 此处拿到的response只是是否成功放入了执行线程的阻塞队列中，而不是任务的执行结果
             runResult = executorBiz.run(triggerParam);
         } catch (Exception e) {
             logger.error(">>>>>>>>>> xxl-job trigger error, please check if the executor[{}] is running.", address, e);

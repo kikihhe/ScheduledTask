@@ -116,6 +116,9 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     @Resource
     private DataSource dataSource;
 
+    @Value("${sever.port}")
+    private String port;
+
 
 
 
@@ -253,5 +256,13 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
     }
 }

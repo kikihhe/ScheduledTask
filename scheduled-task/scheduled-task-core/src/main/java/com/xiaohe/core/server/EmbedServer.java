@@ -148,6 +148,8 @@ public class EmbedServer {
             String accessTokenReq = msg.headers().get(XxlJobRemotingUtil.XXL_JOB_ACCESS_TOKEN);
             bizThreadPool.execute(() -> {
                 // 通过process调用(process判断uri后借助ExecutorBizImpl完成功能)，返回结果
+                // 此处返回的结果是 是否成功放入执行线程的阻塞队列中，而不是任务的执行结果
+                // 任务可能执行很长时间，要等待执行成功后回调给调度中心
                 Object responseObj = process(httpMethod, uri, requestData, accessTokenReq);
                 String responseJson = JsonUtil.writeValueAsString(responseObj);
                 // 把此次调用的结果返回给调度中心。

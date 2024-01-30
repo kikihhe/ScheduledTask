@@ -192,7 +192,7 @@ public class TriggerCallbackThread {
                     callbackLog(callbackParamList, "<br>---------------------- xxl-job job callback fail, callbackResult:" + callbackResult);
                 }
             } catch (Exception e) {
-                // 如果出现异常，记录日志，日志与失败有所不同。
+                // 如果出现异常，记录日志，与失败日志有所不同。
                 callbackLog(callbackParamList, "<br>---------------------- xxl-job job callback error, error message:" + e.getMessage());
             }
         }

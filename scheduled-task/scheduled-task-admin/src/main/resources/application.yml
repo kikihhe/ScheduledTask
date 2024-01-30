@@ -35,10 +35,13 @@ spring:
       maximum-pool-size: 30
       minimum-idle: 10
       auto-commit: true
+#      一个连接idle状态的最大时长，单位毫秒
       idle-timeout: 30000
       pool-name: HikariCP
       max-lifetime: 900000
+#      等待连接池分配连接的最大时长，超过这个时长还没有可用的连接则发生SQLException，单位毫秒
       connection-timeout: 10000
+#
       connection-test-query: SELECT 1
       validation-timeout: 1000
 

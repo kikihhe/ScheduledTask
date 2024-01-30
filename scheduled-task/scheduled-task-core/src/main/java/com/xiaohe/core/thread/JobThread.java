@@ -77,7 +77,7 @@ public class JobThread extends Thread {
 
     /**
      * 调度参数放入调度队列
-     *
+     * 如果成功放入调度队列，说明调度成功
      * @param triggerParam
      */
     public Result pushTriggerQueue(TriggerParam triggerParam) {
@@ -187,7 +187,8 @@ public class JobThread extends Thread {
             }
 
         }
-        // 退出while循环，最后将队列中的数据拿出来回调回去，告诉调度中心这些数据没有执行
+
+        // 退出while循环，最后将队列中没来得及执行的数据拿出来回调回去，告诉调度中心这些数据没有执行
         while (triggerQueue != null && !triggerQueue.isEmpty()) {
             TriggerParam triggerParam = triggerQueue.poll();
             if (triggerParam == null) {

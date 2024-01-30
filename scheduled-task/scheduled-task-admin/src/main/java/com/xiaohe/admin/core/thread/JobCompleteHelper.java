@@ -62,6 +62,7 @@ public class JobCompleteHelper {
             // 开始循环任务
             while (!toStop) {
                 // 找到10分钟内 调度了 && 没执行 && 执行器宕机 的log
+                // 并非所有10mins没执行完的任务都要强制失败，而是执行器已经宕机的任务
                 // 即: xxl_job_log.trigger_code = 200 && xxl_job.handle_code = 0 && xxl_job_registry.id = null
                 Date losedTime = DateUtil.addMinutes(new Date(), -10);
                 List<Long> lostJobIds = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().findLostJobIds(losedTime);
