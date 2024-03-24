@@ -1,6 +1,6 @@
 package com.xiaohe.admin.core.trigger;
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
@@ -45,7 +45,7 @@ public class XxlJobTrigger {
                                String executorShardingParam,
                                String executorParam,
                                String addressList) {
-        XxlJobInfo jobInfo = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().loadById(jobId);
+        XxlJobInfo jobInfo = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobInfoMapper().loadById(jobId);
         if (jobInfo == null) {
             logger.warn(">>>>>>>>>>> trigger fail, jobId invalid, jobId={}", jobId);
             return;
@@ -55,7 +55,7 @@ public class XxlJobTrigger {
             jobInfo.setExecutorParam(executorParam);
         }
         int finalFailRetryCount = failRetryCount >= 0 ? failRetryCount : jobInfo.getExecutorFailRetryCount();
-        XxlJobGroup jobGroup = XxlJobAdminConfig.getAdminConfig().getXxlJobGroupMapper().load(jobInfo.getJobGroup());
+        XxlJobGroup jobGroup = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobGroupMapper().load(jobInfo.getJobGroup());
         if (StringUtil.hasText(addressList)) {
             jobGroup.setAddressList(addressList);
             jobGroup.setAddressType(1);
@@ -96,7 +96,7 @@ public class XxlJobTrigger {
 
         // 封装 日志 XxlJobLog，并将其保存在数据库中，保存后即可获得日志id
         XxlJobLog xxlJobLog = createXxlJobLog(jobInfo);
-        XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().save(xxlJobLog);
+        ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().save(xxlJobLog);
         logger.debug(">>>>>>>>>>> xxl-job trigger start, jobId:{}", jobInfo.getId());
         // 封装 触发参数 TriggerParam
         TriggerParam triggerParam = createTriggerParam(jobInfo, xxlJobLog, index, total);
@@ -149,7 +149,7 @@ public class XxlJobTrigger {
         xxlJobLog.setTriggerCode(triggerResult.getCode());
         xxlJobLog.setTriggerMsg(triggerMsgSb.toString());
         // 更新数据库中的调度的log (当然，执行完还会更新执行的log)
-        XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().updateTriggerInfo(xxlJobLog);
+        ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().updateTriggerInfo(xxlJobLog);
         logger.debug(">>>>>>>>>>>> xxl-job trigger end, jobId:{}", jobInfo.getId());
     }
 

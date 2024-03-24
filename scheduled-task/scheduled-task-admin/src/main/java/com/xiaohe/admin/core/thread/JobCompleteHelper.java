@@ -1,7 +1,7 @@
 package com.xiaohe.admin.core.thread;
 
 import com.xiaohe.admin.core.complete.XxlJobCompleter;
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobLog;
 import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.model.HandlerCallbackParam;
@@ -51,7 +51,7 @@ public class JobCompleteHelper {
         initCallbackThreadPool();
         // 给线程赋上任务
         monitorThread = new Thread(() -> {
-            // xxl-job刚启动的时候肯定不这么急着执行任务。先睡50ms，让其他线程池初始化完毕
+            // Scheduled Task刚启动的时候肯定不这么急着执行任务。先睡50ms，让其他线程池初始化完毕
             try {
                 TimeUnit.MILLISECONDS.sleep(50);
             } catch (InterruptedException e) {
@@ -64,7 +64,7 @@ public class JobCompleteHelper {
                 // 找到10分钟内 调度了 && 没执行 && 执行器宕机 的log
                 // 即: xxl_job_log.trigger_code = 200 && xxl_job.handle_code = 0 && xxl_job_registry.id = null
                 Date losedTime = DateUtil.addMinutes(new Date(), -10);
-                List<Long> lostJobIds = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().findLostJobIds(losedTime);
+                List<Long> lostJobIds = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().findLostJobIds(losedTime);
                 for (Long lostJobId : lostJobIds) {
                     XxlJobLog xxlJobLog = new XxlJobLog();
                     xxlJobLog.setId(lostJobId);
@@ -84,9 +84,9 @@ public class JobCompleteHelper {
             }
         });
         monitorThread.setDaemon(true);
-        monitorThread.setName("xxl-job, admin JobLosedMonitorHelper");
+        monitorThread.setName("Scheduled Task, admin JobLosedMonitorHelper");
         monitorThread.start();
-        logger.info(">>>>>>>>>>>> xxl-job, JobCompleteHelper start success");
+        logger.info(">>>>>>>>>>>> Scheduled Task, JobCompleteHelper start success");
     }
 
     private void initCallbackThreadPool() {
@@ -99,14 +99,14 @@ public class JobCompleteHelper {
                 new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r, "xxl-job, admin JobLosedMonitorHelper-callbackThreadPool-" + r.hashCode());
+                        return new Thread(r, "Scheduled Task, admin JobLosedMonitorHelper-callbackThreadPool-" + r.hashCode());
                     }
                 },
                 new RejectedExecutionHandler() {
                     @Override
                     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
                         r.run();
-                        logger.warn(">>>>>>>>>> xxl-job, callback too fast, match threadpool rejected handler(run now)");
+                        logger.warn(">>>>>>>>>> Scheduled Task, callback too fast, match threadpool rejected handler(run now)");
                     }
                 }
         );
@@ -146,7 +146,7 @@ public class JobCompleteHelper {
     }
 
     private Result callback(HandlerCallbackParam handlerCallbackParam) {
-        XxlJobLog log = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().loadById(handlerCallbackParam.getLogId());
+        XxlJobLog log = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().loadById(handlerCallbackParam.getLogId());
         if (log == null) {
             return Result.error("log item not found");
         }

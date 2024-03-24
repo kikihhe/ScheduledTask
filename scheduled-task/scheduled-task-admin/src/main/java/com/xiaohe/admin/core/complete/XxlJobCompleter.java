@@ -1,6 +1,6 @@
 package com.xiaohe.admin.core.complete;
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
 import com.xiaohe.admin.core.thread.JobTriggerPoolHelper;
@@ -9,7 +9,6 @@ import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.context.XxlJobContext;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.StringUtil;
-import org.codehaus.groovy.transform.ASTTestTransformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +36,7 @@ public class XxlJobCompleter {
             xxlJobLog.setHandleMsg(xxlJobLog.getHandleMsg().substring(0, 15000));
         }
         // 更新任务Log信息（只更新执行信息）
-        return XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().updateHandleInfo(xxlJobLog);
+        return ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().updateHandleInfo(xxlJobLog);
     }
 
     /**
@@ -51,7 +50,7 @@ public class XxlJobCompleter {
         if (xxlJobLog == null || xxlJobLog.getHandlerCode() != XxlJobContext.HANDLE_CODE_SUCCESS) {
             return;
         }
-        XxlJobInfo xxlJobInfo = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().loadById(xxlJobLog.getJobId());
+        XxlJobInfo xxlJobInfo = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobInfoMapper().loadById(xxlJobLog.getJobId());
         if (xxlJobInfo == null || !StringUtil.hasText(xxlJobInfo.getChildJobId())) {
             return;
         }

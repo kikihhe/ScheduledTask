@@ -1,9 +1,8 @@
 package com.xiaohe.admin.core.thread;
 
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobLogReport;
-import com.xiaohe.admin.mapper.XxlJobLogReportMapper;
 import com.xiaohe.core.util.CollectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,13 +59,13 @@ public class JobLogReportHelper {
                     }
                 }
             }
-            logger.info(">>>>>>>>>>> xxl-job, job log report thread stop");
+            logger.info(">>>>>>>>>>> Scheduled Task, job log report thread stop");
         });
         logThread.setDaemon(true);
-        logThread.setName("xxl-job, admin JobLogReportHelper");
+        logThread.setName("Scheduled Task, admin JobLogReportHelper");
         logThread.start();
 
-        logger.info(">>>>>>>>>>>> xxl-job, JobLogReportHelper start success");
+        logger.info(">>>>>>>>>>>> Scheduled Task, JobLogReportHelper start success");
     }
 
     /**
@@ -87,7 +86,7 @@ public class JobLogReportHelper {
             // triggerDayCount: 这一天调度了多少个任务
             // triggerDayCountRunning: 查的时候有多少任务正在运行。其实并不准确，查的时候查的是 trigger_code=200 && handle_code = 0 的任务
             // triggerDayCountSuc: 这一天运行成功多少次任务
-            Map<String, Object> triggerCountMap = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().findLogReport(toDayBegin, todayEnd);
+            Map<String, Object> triggerCountMap = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().findLogReport(toDayBegin, todayEnd);
             if (!CollectionUtil.isEmpty(triggerCountMap)) {
                 int triggerDayCount = triggerCountMap.containsKey("triggerDayCount") ? Integer.valueOf(String.valueOf(triggerCountMap.get("triggerDayCount"))) : 0;
                 int triggerDayCountRunning = triggerCountMap.containsKey("triggerDayCountRunning") ? Integer.valueOf(String.valueOf(triggerCountMap.get("triggerDayCountRunning"))) : 0;
@@ -98,9 +97,9 @@ public class JobLogReportHelper {
                 xxlJobLogReport.setSucCount(triggerDayCountSuc);
                 xxlJobLogReport.setFailCount(triggerDayCountFail);
             }
-            int ret = XxlJobAdminConfig.getAdminConfig().getXxlJobLogReportMapper().update(xxlJobLogReport);
+            int ret = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogReportMapper().update(xxlJobLogReport);
             if (ret < 1) {
-                XxlJobAdminConfig.getAdminConfig().getXxlJobLogReportMapper().save(xxlJobLogReport);
+                ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogReportMapper().save(xxlJobLogReport);
             }
 
         }
@@ -110,15 +109,15 @@ public class JobLogReportHelper {
      * 根据配置文件，清除过期日志
      */
     public void cleanExpiredLogs(long lastCleanLogTime) {
-        if (XxlJobAdminConfig.getAdminConfig().getLogretentiondays() > 0
+        if (ScheduleTaskAdminConfig.getAdminConfig().getLogretentiondays() > 0
                 && System.currentTimeMillis() >= lastCleanLogTime + 24 * 60 * 60 * 1000) {
             // 得到需要清除那天的时间，从数据中删除这个时间之前的所有日志
-            Date expiredDay = getTodayBegin(-1 * XxlJobAdminConfig.getAdminConfig().getLogretentiondays());
+            Date expiredDay = getTodayBegin(-1 * ScheduleTaskAdminConfig.getAdminConfig().getLogretentiondays());
             List<Long> cleanLogIds = null;
             do {
-                cleanLogIds = XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().findClearJobLog(0, 0, expiredDay, 0, 1000);
+                cleanLogIds = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().findClearJobLog(0, 0, expiredDay, 0, 1000);
                 if (!CollectionUtil.isEmpty(cleanLogIds)) {
-                    XxlJobAdminConfig.getAdminConfig().getXxlJobLogMapper().clearLogs(cleanLogIds);
+                    ScheduleTaskAdminConfig.getAdminConfig().getXxlJobLogMapper().clearLogs(cleanLogIds);
                 }
 
             } while (!CollectionUtil.isEmpty(cleanLogIds));

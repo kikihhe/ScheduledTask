@@ -22,13 +22,13 @@ import java.util.Arrays;
  * @date : 2023-10-05 19:44
  */
 @Component
-public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
-    private static Logger logger = LoggerFactory.getLogger(XxlJobAdminConfig.class);
+public class ScheduleTaskAdminConfig implements InitializingBean, DisposableBean {
+    private static Logger logger = LoggerFactory.getLogger(ScheduleTaskAdminConfig.class);
 
     /**
      * XxlJobAdminConfig想要配置和mapper文件，就要等spring容器初始化后再初始化
      */
-    private static XxlJobAdminConfig adminConfig = null;
+    private static ScheduleTaskAdminConfig adminConfig = null;
 
     /**
      * 调度中心
@@ -119,13 +119,13 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
 
 
 
-    public static XxlJobAdminConfig getAdminConfig() {
+    public static ScheduleTaskAdminConfig getAdminConfig() {
         return adminConfig;
     }
 
 
-    public static void setAdminConfig(XxlJobAdminConfig adminConfig) {
-        XxlJobAdminConfig.adminConfig = adminConfig;
+    public static void setAdminConfig(ScheduleTaskAdminConfig adminConfig) {
+        ScheduleTaskAdminConfig.adminConfig = adminConfig;
     }
 
     public String getAccessToken() {

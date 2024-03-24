@@ -13,7 +13,7 @@
         <module>scheduled-task-admin</module>
         <module>scheduled-task-sample</module>
         <module>scheduled-task-sample/scheduled-task-sample-frameless</module>
-        <module>scheduled-task-register</module>
+        <module>scheduled-task-springboot-starter</module>
     </modules>
 
 

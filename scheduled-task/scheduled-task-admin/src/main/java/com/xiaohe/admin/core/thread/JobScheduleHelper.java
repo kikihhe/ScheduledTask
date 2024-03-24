@@ -1,6 +1,6 @@
 package com.xiaohe.admin.core.thread;
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.cron.CronExpression;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.scheduler.MisfireStrategyEnum;
@@ -16,7 +16,6 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -67,7 +66,7 @@ public class JobScheduleHelper {
     public void start() {
         initScheduleThread();
         initRingThread();
-        logger.info(">>>>>>>>>>>> xxl-job, JobScheduleHelper start success");
+        logger.info(">>>>>>>>>>>> Scheduled Task, JobScheduleHelper start success");
     }
 
 
@@ -80,10 +79,10 @@ public class JobScheduleHelper {
                     logger.error(e.getMessage(), e);
                 }
             }
-            logger.info(">>>>>>>>>> init xxl-job scheduler success.");
+            logger.info(">>>>>>>>>> init Scheduled Task scheduler success.");
 
             // 默认预读数量，根据配置的快慢线程池数量来决定一次性(1s)能处理多少任务。默认一个任务50ms，那么1s内能执行20个任务。
-            int preReadCount = (XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax() + XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) % (1000 / 50);
+            int preReadCount = (ScheduleTaskAdminConfig.getAdminConfig().getTriggerPoolFastMax() + ScheduleTaskAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) % (1000 / 50);
             while (!scheduleThreadToStop) {
                 // start记录扫描数据库花了多长时间
                 long start = System.currentTimeMillis();
@@ -92,7 +91,7 @@ public class JobScheduleHelper {
                 PreparedStatement preparedStatement = null;
                 boolean preReadSuc = true;
                 try {
-                    conn = XxlJobAdminConfig.getAdminConfig().getDataSource().getConnection();
+                    conn = ScheduleTaskAdminConfig.getAdminConfig().getDataSource().getConnection();
                     connAutoCommit = conn.getAutoCommit();
                     // 事务
                     conn.setAutoCommit(false);
@@ -101,7 +100,7 @@ public class JobScheduleHelper {
                     preparedStatement.execute();
                     // now 用于从数据库扫出来任务 now + 5000
                     long now = System.currentTimeMillis();
-                    List<XxlJobInfo> xxlJobInfos = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().scheduleJobQuery(now + PRE_READ_MS, preReadCount);
+                    List<XxlJobInfo> xxlJobInfos = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobInfoMapper().scheduleJobQuery(now + PRE_READ_MS, preReadCount);
                     if (CollectionUtil.isEmpty(xxlJobInfos)) {
                         preReadSuc = false;
                         continue;
@@ -111,10 +110,10 @@ public class JobScheduleHelper {
                         // 但是如果现在到了12s，有可能是任务实在太多、MySQL的IO操作太耗时了调度不过来，那么将任务执行的5s后为补偿时间，此处为 [12, 16]。也就是你错过了但是我补偿你重新调度一次。
                         // 而且如果下次执行在5s的区间，就顺便将任务放入时间轮中
                         if (jobInfo.getTriggerNextTime() + PRE_READ_MS > now && now > jobInfo.getTriggerNextTime()) {
-                            logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId: " + jobInfo.getId());
+                            logger.warn(">>>>>>>>>>> Scheduled Task, schedule misfire, jobId: " + jobInfo.getId());
                             // 调度
                             JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.CRON, -1, null, null, null);
-                            logger.debug(">>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId());
+                            logger.debug(">>>>>>>>>> Scheduled Task, schedule push trigger : jobId = " + jobInfo.getId());
                             // 刷新下次执行时间
                             refreshNextValidTime(jobInfo, new Date());
                             if (jobInfo.getTriggerStatus() == 1 && now + PRE_READ_MS > jobInfo.getTriggerNextTime()) {
@@ -125,11 +124,11 @@ public class JobScheduleHelper {
                         } else if (jobInfo.getTriggerNextTime() + PRE_READ_MS < now) {
                             // 这个任务需要在11s执行，如果现在的时间在 [11, 16] 之间，还可以弥补，但是现在的时间在 19s，已经远远超过它应该调度的时间。这种情况大概率是调度中心宕机了。
                             // 也就是这个任务根本没有被调度导致现在已经错过5s了。怎么办？使用调度过期策略
-                            logger.debug(">>>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
+                            logger.debug(">>>>>>>>>>>> Scheduled Task, schedule misfire, jobId = " + jobInfo.getId());
                             MisfireStrategyEnum misfireStrategy = MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), null);
                             if (misfireStrategy == MisfireStrategyEnum.FIRE_ONCE_NOW) {
                                 JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.MISFIRE, -1, null, null, null);
-                                logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId());
+                                logger.debug(">>>>>>>>>>> Scheduled Task, schedule push trigger : jobId = " + jobInfo.getId());
                             }
                             refreshNextValidTime(jobInfo, new Date());
                         } else {
@@ -141,10 +140,10 @@ public class JobScheduleHelper {
 
                     }
                     // 更新一下上面任务的状态。
-                    XxlJobAdminConfig.getAdminConfig().getXxlJobInfoMapper().scheduleUpdate(xxlJobInfos);
+                    ScheduleTaskAdminConfig.getAdminConfig().getXxlJobInfoMapper().scheduleUpdate(xxlJobInfos);
                 } catch (Exception e) {
                     if (!scheduleThreadToStop) {
-                        logger.error(">>>>>>>>>>> xxl-job, JobScheduleHelper#scheduleThread error:{}", e);
+                        logger.error(">>>>>>>>>>> Scheduled Task, JobScheduleHelper#scheduleThread error:{}", e);
                     }
                 } finally {
                     // 提交事务、关闭资源
@@ -165,11 +164,11 @@ public class JobScheduleHelper {
 
                 }
             }
-            logger.info(">>>>>>>>>>> xxl-job, JobScheduleHelper#scheduleThread stop");
+            logger.info(">>>>>>>>>>> Scheduled Task, JobScheduleHelper#scheduleThread stop");
         });
         //设置守护线程，启动线程
         scheduleThread.setDaemon(true);
-        scheduleThread.setName("xxl-job, admin JobScheduleHelper#scheduleThread");
+        scheduleThread.setName("Scheduled Task, admin JobScheduleHelper#scheduleThread");
         scheduleThread.start();
     }
 
@@ -228,7 +227,7 @@ public class JobScheduleHelper {
                             ringItemData.addAll(tmpData);
                         }
                     }
-                    logger.debug(">>>>>>>>>>>> xxl-job, time-ring beat : " + nowSecond + " = " + ringItemData);
+                    logger.debug(">>>>>>>>>>>> Scheduled Task, time-ring beat : " + nowSecond + " = " + ringItemData);
                     for (int jobId : ringItemData) {
                         JobTriggerPoolHelper.trigger(jobId, TriggerTypeEnum.CRON, -1, null, null, null);
                     }
@@ -239,10 +238,10 @@ public class JobScheduleHelper {
                     }
                 }
             }
-            logger.info(">>>>>>>>>>> xxl-job, JobScheduleHelper#ringThread stop");
+            logger.info(">>>>>>>>>>> Scheduled Task, JobScheduleHelper#ringThread stop");
         });
         ringThread.setDaemon(true);
-        ringThread.setName("xxl-job, admin JobScheduleHelper#ringThread");
+        ringThread.setName("Scheduled Task, admin JobScheduleHelper#ringThread");
         ringThread.start();
 
     }
@@ -255,7 +254,7 @@ public class JobScheduleHelper {
             ringData.put(ringSecond, ringItemData);
         }
         ringItemData.add(jobId);
-        logger.debug(">>>>>>>>>>>> xxl-job, schedule push time-ring : " + ringSecond + " = " + ringItemData);
+        logger.debug(">>>>>>>>>>>> Scheduled Task, schedule push time-ring : " + ringSecond + " = " + ringItemData);
     }
 
     private void refreshNextValidTime(XxlJobInfo jobInfo, Date fromTime) throws ParseException {
@@ -266,7 +265,7 @@ public class JobScheduleHelper {
         } else {
             jobInfo.setTriggerStatus(0);
             jobInfo.setTriggerLastTime(0);
-            logger.warn(">>>>>>>>>>> xxl-job, refreshNextValidTime fail for job: {}, scheduleType: {}, scheduleConf: {}", jobInfo.getId(), jobInfo.getScheduleType(), jobInfo.getScheduleConf());
+            logger.warn(">>>>>>>>>>> Scheduled Task, refreshNextValidTime fail for job: {}, scheduleType: {}, scheduleConf: {}", jobInfo.getId(), jobInfo.getScheduleType(), jobInfo.getScheduleConf());
         }
     }
 
@@ -331,6 +330,6 @@ public class JobScheduleHelper {
                 logger.error(e.getMessage());
             }
         }
-        logger.info(">>>>>>>>>>> xxl-job, JobScheduleHelper stop");
+        logger.info(">>>>>>>>>>> Scheduled Taskb, JobScheduleHelper stop");
     }
 }

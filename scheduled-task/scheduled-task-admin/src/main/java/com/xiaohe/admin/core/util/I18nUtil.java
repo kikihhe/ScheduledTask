@@ -1,7 +1,7 @@
 package com.xiaohe.admin.core.util;
 
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.core.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class I18nUtil {
         }
         try {
             //这里是从用户自己定义的配置文件中得到I18的zh_CN
-            String i18n = XxlJobAdminConfig.getAdminConfig().getI18n();
+            String i18n = ScheduleTaskAdminConfig.getAdminConfig().getI18n();
             //然后获得要选取的I18的对应的文件路径
             String i18nFile = MessageFormat.format("i18n/message_{0}.properties", i18n);
             //根据路径创建Resource

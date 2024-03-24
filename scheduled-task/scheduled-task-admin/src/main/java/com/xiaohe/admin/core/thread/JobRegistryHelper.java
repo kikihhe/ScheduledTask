@@ -1,10 +1,9 @@
 package com.xiaohe.admin.core.thread;
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobRegistry;
 import com.xiaohe.core.enums.RegistryConfig;
-import com.xiaohe.core.handler.annotation.XxlJob;
 import com.xiaohe.core.model.RegistryParam;
 import com.xiaohe.core.model.Result;
 import com.xiaohe.core.util.CollectionUtil;
@@ -53,10 +52,10 @@ public class JobRegistryHelper {
         // 给定时清理过期执行器的线程赋予任务, 30s一次
         initRegistryMonitorThread();
         registryMonitorThread.setDaemon(true);
-        registryMonitorThread.setName("xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread");
+        registryMonitorThread.setName("Scheduled Task, admin JobRegistryMonitorHelper-registryMonitorThread");
         registryMonitorThread.start();
 
-        logger.info(">>>>>>>>>>>> xxl-job, JobRegistryHelper start success");
+        logger.info(">>>>>>>>>>>> Scheduled Task, JobRegistryHelper start success");
     }
 
     /**
@@ -71,12 +70,12 @@ public class JobRegistryHelper {
                 new LinkedBlockingQueue<>(2000),
                 // thread factory
                 (runnable) -> {
-                    return new Thread("xxl-job, admin JobThreadMonitorHelper-registryOrRemoveThreadPool-" + runnable.hashCode());
+                    return new Thread("Scheduled Task, admin JobThreadMonitorHelper-registryOrRemoveThreadPool-" + runnable.hashCode());
                 },
                 // 拒绝策略：再次执行一次
                 (runnable, threadPoolExecutor) -> {
                     runnable.run();
-                    logger.warn(">>>>>>>>>> xxl-job, registry or remove too fast, match threadpool rejected handler(run now)");
+                    logger.warn(">>>>>>>>>> Scheduled Task, registry or remove too fast, match threadpool rejected handler(run now)");
                 }
         );
     }
@@ -88,7 +87,7 @@ public class JobRegistryHelper {
         registryMonitorThread = new Thread(() -> {
             while (!toStop) {
                 // 查找自动注册的执行器组。如果有，再删那些宕机执行器也不迟
-                List<XxlJobGroup> groupList = XxlJobAdminConfig.getAdminConfig().getXxlJobGroupMapper().findByAddressType(0);
+                List<XxlJobGroup> groupList = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobGroupMapper().findByAddressType(0);
                 if (!CollectionUtil.isEmpty(groupList)) {
                     // key : appname, value: 很多执行器IP
                     // 这个Map中的数据跟groupList中group的address不一样，这个Map里的值是从注册信息中找的没有宕机的数据。
@@ -107,7 +106,7 @@ public class JobRegistryHelper {
                         group.setUpdateTime(new Date());
                     }
                     if (!groupList.isEmpty()) {
-                        XxlJobAdminConfig.getAdminConfig().getXxlJobGroupMapper().updateBatch(groupList);
+                        ScheduleTaskAdminConfig.getAdminConfig().getXxlJobGroupMapper().updateBatch(groupList);
                     }
                 }
                 //线程在这里睡30秒，也就意味着检测周期为30秒
@@ -115,11 +114,11 @@ public class JobRegistryHelper {
                     TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
                 } catch (InterruptedException e) {
                     if (!toStop) {
-                        logger.error(">>>>>>>>>>> xxl-job, job registry monitor thread error:{}", e);
+                        logger.error(">>>>>>>>>>> Scheduled Task, job registry monitor thread error:{}", e);
                     }
                 }
             }
-            logger.info(">>>>>>>>>>> xxl-job, job registry monitor thread stop");
+            logger.info(">>>>>>>>>>> Scheduled Task, job registry monitor thread stop");
         });
     }
 
@@ -137,14 +136,14 @@ public class JobRegistryHelper {
         // 如果不为空，说明有自动注册的执行器组
         // 查找90s没有注册的执行器地址, 这里没有区分手动注册还是自动注册
         List<Integer> ids =
-                XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryMapper().findDead(RegistryConfig.DEAD_TIMEOUT, new Date());
+                ScheduleTaskAdminConfig.getAdminConfig().getXxlJobRegistryMapper().findDead(RegistryConfig.DEAD_TIMEOUT, new Date());
         if (!CollectionUtil.isEmpty(ids)) {
             // 将这些久久没有更新数据库注册信息的执行器注册信息删除
-            XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryMapper().removeDead(ids);
+            ScheduleTaskAdminConfig.getAdminConfig().getXxlJobRegistryMapper().removeDead(ids);
         }
         // 从数据库中查出没有死亡的执行器。只要自动注册的，手动注册的不要。因为要将这些执行器的IP与刚才查出的group里的地址同步。
         List<XxlJobRegistry> list =
-                XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryMapper().findAll(RegistryConfig.DEAD_TIMEOUT, new Date());
+                ScheduleTaskAdminConfig.getAdminConfig().getXxlJobRegistryMapper().findAll(RegistryConfig.DEAD_TIMEOUT, new Date());
         if (!CollectionUtil.isEmpty(list)) {
             for (XxlJobRegistry item : list) {
                 if (!RegistryConfig.RegistType.EXECUTOR.name().equals(item.getRegistryGroup())) {
@@ -185,7 +184,7 @@ public class JobRegistryHelper {
             return Result.error("Illegal Argument.");
         }
         registryOrRemoveThreadPool.execute(() -> {
-            XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryMapper().registryDelete(
+            ScheduleTaskAdminConfig.getAdminConfig().getXxlJobRegistryMapper().registryDelete(
                     registryParam.getRegistryGroup(),
                     registryParam.getRegistryKey(),
                     registryParam.getRegistryValue());
@@ -202,7 +201,7 @@ public class JobRegistryHelper {
         }
         registryOrRemoveThreadPool.execute(() -> {
             // 默认这个心跳是刷新
-            int update = XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryMapper().registryUpdate(
+            int update = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobRegistryMapper().registryUpdate(
                     registryParam.getRegistryGroup(),
                     registryParam.getRegistryKey(),
                     registryParam.getRegistryValue(),
@@ -210,7 +209,7 @@ public class JobRegistryHelper {
             );
             // 没刷新成功就说明还没有，即这个执行器第一次心跳。注册一下
             if (update < 1) {
-                XxlJobAdminConfig.getAdminConfig().getXxlJobRegistryMapper().registrySave(
+                ScheduleTaskAdminConfig.getAdminConfig().getXxlJobRegistryMapper().registrySave(
                         registryParam.getRegistryGroup(),
                         registryParam.getRegistryKey(),
                         registryParam.getRegistryValue(),

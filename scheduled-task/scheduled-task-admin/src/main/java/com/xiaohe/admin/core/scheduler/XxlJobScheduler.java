@@ -1,6 +1,6 @@
 package com.xiaohe.admin.core.scheduler;
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.thread.*;
 import com.xiaohe.admin.core.util.I18nUtil;
 import com.xiaohe.core.biz.ExecutorBiz;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author : 小何
- * @Description : 调度中心 可以启动xxl-job的几个组件，可以获取与执行器通信的ExecutorBiz
+ * @Description : 调度中心 可以启动Scheduled Task的几个组件，可以获取与执行器通信的ExecutorBiz
  * @date : 2023-10-05 19:45
  */
 public class XxlJobScheduler {
@@ -70,7 +70,7 @@ public class XxlJobScheduler {
         if (executorBiz != null) {
             return executorBiz;
         }
-        executorBiz = new ExecutorBizClient(address, XxlJobAdminConfig.getAdminConfig().getAccessToken());
+        executorBiz = new ExecutorBizClient(address, ScheduleTaskAdminConfig.getAdminConfig().getAccessToken());
         executorBizRepository.put(address, executorBiz);
         return executorBiz;
     }

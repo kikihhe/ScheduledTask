@@ -1,6 +1,6 @@
 package com.xiaohe.admin.controller;
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.core.biz.AdminBiz;
 import com.xiaohe.core.model.HandlerCallbackParam;
 import com.xiaohe.core.model.RegistryParam;
@@ -32,7 +32,7 @@ public class JobApiController {
             return Result.error("invalid request, uri-mapping empty");
         }
         String requestToken = request.getHeader(XxlJobRemotingUtil.XXL_JOB_ACCESS_TOKEN);
-        if (!StringUtil.hasText(requestToken) || !requestToken.equals(XxlJobAdminConfig.getAdminConfig().getAccessToken())) {
+        if (!StringUtil.hasText(requestToken) || !requestToken.equals(ScheduleTaskAdminConfig.getAdminConfig().getAccessToken())) {
             return Result.error("the access token is wrong.");
         }
         // 开始处理任务

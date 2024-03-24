@@ -1,7 +1,7 @@
 package com.xiaohe.admin.core.alarm.impl;
 
 import com.xiaohe.admin.core.alarm.JobAlarm;
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.model.XxlJobGroup;
 import com.xiaohe.admin.core.model.XxlJobInfo;
 import com.xiaohe.admin.core.model.XxlJobLog;
@@ -43,13 +43,13 @@ public class EmailJobAlarm implements JobAlarm {
         Set<String> emailSet = new HashSet<>(Arrays.asList(xxlJobInfo.getAlarmEmail().split(",")));
         for (String email : emailSet) {
             try {
-                MimeMessage mimeMessage = XxlJobAdminConfig.getAdminConfig().getMailSender().createMimeMessage();
+                MimeMessage mimeMessage = ScheduleTaskAdminConfig.getAdminConfig().getMailSender().createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-                helper.setFrom(XxlJobAdminConfig.getAdminConfig().getEmailFrom(), personal);
+                helper.setFrom(ScheduleTaskAdminConfig.getAdminConfig().getEmailFrom(), personal);
                 helper.setTo(email);
                 helper.setSubject(title);
                 helper.setText(content, true);
-                XxlJobAdminConfig.getAdminConfig().getMailSender().send(mimeMessage);
+                ScheduleTaskAdminConfig.getAdminConfig().getMailSender().send(mimeMessage);
             } catch (Exception e) {
                 logger.error(">>>>>>>>>>>>>> xxl-job, job fail alarm email send error, JobLogId:{}", xxlJobLog.getId(), e);
                 alarmResult = false;
@@ -68,7 +68,7 @@ public class EmailJobAlarm implements JobAlarm {
             alarmContent += "<br>HandlerMsg=<br>" + xxlJobLog.getHandleMsg();
         }
         // 得到负责该任务的执行器组
-        XxlJobGroup xxlJobGroup = XxlJobAdminConfig.getAdminConfig().getXxlJobGroupMapper().load(Integer.valueOf(xxlJobInfo.getJobGroup()));
+        XxlJobGroup xxlJobGroup = ScheduleTaskAdminConfig.getAdminConfig().getXxlJobGroupMapper().load(Integer.valueOf(xxlJobInfo.getJobGroup()));
         return MessageFormat.format(loadEmailJobAlarmTemplate(),
                 xxlJobGroup != null ? xxlJobGroup.getTitle() : "null",
                 xxlJobInfo.getId(),

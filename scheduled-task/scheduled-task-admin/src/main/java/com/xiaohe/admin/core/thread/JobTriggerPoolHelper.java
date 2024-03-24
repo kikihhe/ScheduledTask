@@ -1,6 +1,6 @@
 package com.xiaohe.admin.core.thread;
 
-import com.xiaohe.admin.core.conf.XxlJobAdminConfig;
+import com.xiaohe.admin.core.conf.ScheduleTaskAdminConfig;
 import com.xiaohe.admin.core.trigger.TriggerTypeEnum;
 import com.xiaohe.admin.core.trigger.XxlJobTrigger;
 import org.slf4j.Logger;
@@ -53,31 +53,31 @@ public class JobTriggerPoolHelper {
     private void start() {
         fastTriggerPool = new ThreadPoolExecutor(
                 10,
-                XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax(),
+                ScheduleTaskAdminConfig.getAdminConfig().getTriggerPoolFastMax(),
                 60L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(1000),
                 new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread("xxl-job, admin JobTriggerPoolHelper-fastTriggerPool-" + r.hashCode());
+                        return new Thread("Scheduled Task, admin JobTriggerPoolHelper-fastTriggerPool-" + r.hashCode());
                     }
                 }
         );
         slowTriggerPool = new ThreadPoolExecutor(
                 20,
-                XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax(),
+                ScheduleTaskAdminConfig.getAdminConfig().getTriggerPoolSlowMax(),
                 60L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(2000),
                 new ThreadFactory() {
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread("xxl-job, admin JobTriggerPoolHelper-slowTriggerPool-" + r.hashCode());
+                        return new Thread("Scheduled Task, admin JobTriggerPoolHelper-slowTriggerPool-" + r.hashCode());
                     }
                 }
         );
-        logger.info(">>>>>>>>>>>> xxl-job, JobTriggerPoolHelper start success");
+        logger.info(">>>>>>>>>>>> Scheduled Task, JobTriggerPoolHelper start success");
     }
 
     /**
@@ -86,7 +86,7 @@ public class JobTriggerPoolHelper {
     private void stop() {
         fastTriggerPool.shutdownNow();
         slowTriggerPool.shutdownNow();
-        logger.info(">>>>>>>>> xxl-job trigger thread pool shutdown success.");
+        logger.info(">>>>>>>>> Scheduled Task trigger thread pool shutdown success.");
     }
 
     /**
@@ -149,7 +149,7 @@ public class JobTriggerPoolHelper {
                     minTime = minTime_now;
                     jobTimeoutCountMap.clear();
                 }
-                // 如果任务执行花费超过500ms，记录一次慢执行
+                // 如果任务调度花费超过500ms，记录一次慢执行
                 long end = System.currentTimeMillis();
                 if (end - start > 500) {
                     AtomicInteger timeoutCount = jobTimeoutCountMap.putIfAbsent(jobId, new AtomicInteger(0));
